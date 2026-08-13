@@ -1,0 +1,69 @@
+name: CI Verification
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Lint, Type Check & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }} # Checkout the branch of the PR or push
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Linting
+        run: bun run lint
+
+      - name: Run Type Checking
+        run: bun x tsc --noEmit
+
+      - name: Run Test Suite
+        run: bun run test
+
+      - name: Verify SDK Build
+        run: bun run build
+
+      - name: Run Dokugen Documentation Update (PR only)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Checking version: $VERSION"
+          if [[ "$VERSION" == *.0.0 ]]; then
+            echo "Major version release ($VERSION) detected. Dokugen failure will fail the build."
+            bun x dokugen update && bun x dokugen changelog
+          else
+            echo "Non-major version release ($VERSION) detected. Dokugen failure will log a warning."
+            bun x dokugen update && bun x dokugen changelog || echo "::warning::Dokugen failed, but continuing build gracefully."
+          fi
+        env:
+          DOKUGEN_API_KEY: ${{ secrets.DOKUGEN_API_KEY }}
+
+      - name: Commit Dokugen Updates back to PR Branch
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "docs: update documentation and changelogs [skip ci]"
+          file_pattern: 'README.md CHANGELOG.md'
+
+      - name: Verify Docs Site Build
+        run: |
+          cd docs
+          bun install --frozen-lockfile
+          bun run build

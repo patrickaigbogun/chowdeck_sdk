@@ -25,7 +25,8 @@
     "build": "tsup",
     "test": "vitest run",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "tag": "bun scripts/tag.ts"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
