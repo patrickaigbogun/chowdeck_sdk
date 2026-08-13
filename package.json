@@ -1,6 +1,6 @@
 {
   "name": "chwdck",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TypeScript SDK for Chowdeck (Merchant and Relay APIs)",
   "type": "module",
   "main": "./dist/index.js",
