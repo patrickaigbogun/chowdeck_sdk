@@ -1,0 +1,66 @@
+---
+title: Configuration & Installation
+description: Get up and running with the Chwdck TypeScript SDK.
+---
+
+This guide walks you through installing the SDK and configuring your first API client.
+
+---
+
+## Installation
+
+Install the package via your preferred package manager. Since the SDK is built with native ESM and NodeNext module resolution, it works seamlessly with Bun, Node, and browser-based bundlers.
+
+```bash
+# Using Bun (Recommended)
+bun add chwdck
+
+# Using npm
+npm install chwdck
+
+# Using Yarn
+yarn add chwdck
+
+# Using pnpm
+pnpm add chwdck
+```
+
+### Requirements
+- **Runtime**: Node.js (>=18.0.0) or Bun (>=1.0.0).
+- **TypeScript**: Version >=5.0.0 (if using TypeScript).
+
+---
+
+## Initializing the Client
+
+Import and instantiate the `chowdeck` client. The SDK uses a camelCase factory function for construction.
+
+```typescript
+import { chowdeck } from 'chwdck';
+
+const client = chowdeck({
+  apiKey: process.env.CHOWDECK_API_KEY!,
+});
+```
+
+### Configuration Options
+
+The factory function accepts a configuration object with the following properties:
+
+| Option | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `apiKey` | `string` | **Yes** | — | Your secret API key. Can be obtained from the Developer settings on the Chowdeck Dashboard. |
+| `baseUrl` | `string` | No | `https://api.chowdeck.com` | Custom endpoint URL override. Useful for targeting the sandbox testing environment. |
+
+### Testing in Sandbox
+
+To test your integration safely without creating live deliveries or orders, point the client to the sandbox API:
+
+```typescript
+import { chowdeck } from 'chwdck';
+
+const client = chowdeck({
+  apiKey: 'YOUR_SANDBOX_API_KEY',
+  baseUrl: 'https://api-sandbox.chowdeck.com',
+});
+```

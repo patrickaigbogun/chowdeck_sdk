@@ -1,0 +1,8 @@
+{
+  "index": "Philosophy",
+  "configuration": "Configuration",
+  "merchant": "Merchant API",
+  "relay": "Relay API",
+  "error-handling": "Error Handling",
+  "workflows": "Workflows"
+}

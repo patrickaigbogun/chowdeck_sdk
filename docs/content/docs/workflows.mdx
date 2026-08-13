@@ -1,0 +1,141 @@
+---
+title: Real-World Workflows
+description: End-to-end integration flows combining multiple SDK methods and utilities.
+---
+
+This page provides complete integration templates for common business scenarios.
+
+---
+
+## 1. Relay Package Delivery Flow
+
+A complete end-to-end flow for quoting, booking, and tracking a package delivery.
+
+```typescript
+import { chowdeck, ChowdeckAPIError } from 'chwdck';
+
+const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
+
+async function runDeliveryWorkflow() {
+  try {
+    // Step 1: Calculate the delivery fee quote
+    console.log('1. Fetching delivery fee quote...');
+    const quote = await client.r.deliveries.quote({
+      pickup: {
+        address: '12 Herbert Macaulay Way, Yaba, Lagos',
+        latitude: 6.5022,
+        longitude: 3.3768,
+        contact: { name: 'Sender', phone: '+2348000000001' }
+      },
+      dropoff: {
+        address: '90 Allen Avenue, Ikeja, Lagos',
+        latitude: 6.5986,
+        longitude: 3.3542,
+        contact: { name: 'Recipient', phone: '+2348000000002' }
+      }
+    });
+    
+    const feeId = quote.data.fee_id;
+    console.log(`✅ Quote success. Cost: ${quote.data.amount} Kobo. Fee ID: ${feeId}`);
+
+    // Step 2: Create the delivery booking using the Quote Fee ID
+    console.log('\n2. Booking delivery dispatch...');
+    const delivery = await client.r.deliveries.create({
+      fee_id: feeId,
+      description: 'Customer order parcel',
+      notes: 'Ring bell on arrival.'
+    });
+    
+    const deliveryRef = delivery.data.reference;
+    console.log(`✅ Delivery booked successfully. Reference: ${deliveryRef}`);
+
+    // Step 3: Check delivery tracking status
+    console.log('\n3. Tracking delivery status...');
+    const status = await client.r.deliveries.get(deliveryRef);
+    console.log(`✅ Current status: ${status.data.status}`); // e.g. "searching_for_rider"
+
+  } catch (error) {
+    if (error instanceof ChowdeckAPIError) {
+      console.error(`❌ Workflow failed: ${error.message} (${error.statusCode})`);
+    } else {
+      console.error('❌ Unexpected error:', error);
+    }
+  }
+}
+
+await runDeliveryWorkflow();
+```
+
+---
+
+## 2. Merchant Order Fulfiment Webhook Flow
+
+This workflow illustrates how to securely handle incoming Chowdeck order webhooks, verify signatures, accept the order, suggest item substitutions, and mark it ready.
+
+```typescript
+import { chowdeck, verifySignature, ChowdeckAPIError } from 'chwdck';
+import express from 'express'; // Example express web server
+
+const app = express();
+const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
+const webhookSecret = process.env.CHOWDECK_WEBHOOK_SECRET!;
+const merchantRef = process.env.CHOWDECK_MERCHANT_REF!;
+
+// Make sure to parse the raw body as a string to verify the HMAC signature correctly
+app.post('/webhooks/chowdeck', express.text({ type: 'application/json' }), async (req, res) => {
+  const signature = req.headers['x-chowdeck-signature'] as string;
+  const rawBody = req.body;
+
+  // 1. Verify Webhook Authenticity to protect against timing attacks
+  const isValid = verifySignature(rawBody, signature, webhookSecret);
+  if (!isValid) {
+    console.error('❌ Webhook Signature verification failed');
+    return res.status(401).send('Unauthorized signature');
+  }
+
+  // Parse payload once verified
+  const payload = JSON.parse(rawBody);
+  console.log(`Received Webhook: ${payload.event}`);
+
+  // 2. Handle order.created event
+  if (payload.event === 'order.created') {
+    const orderRef = payload.data.reference;
+    console.log(`Processing incoming Order: ${orderRef}`);
+
+    try {
+      // Step A: Accept the order immediately to transition it to "preparing"
+      await client.m.orders.accept(merchantRef, orderRef);
+      console.log(`✅ Order ${orderRef} accepted and status set to preparing.`);
+
+      // Optional Step B: Propose an item substitution if an item is out of stock
+      const outOfStock = false; // Add your own stock checker logic
+      if (outOfStock) {
+        console.log(`Out of stock item detected. Proposing substitution...`);
+        await client.m.orders.substitute(merchantRef, orderRef, {
+          items: [
+            {
+              original_item_id: 'unavailable-item-uuid',
+              substituted_item_id: 'substitute-item-uuid',
+              quantity: 1
+            }
+          ]
+        });
+        console.log(`✅ Substitution proposal sent to customer.`);
+      }
+
+      // Step C: After cooking/packaging, mark the order as ready for pickup
+      await client.m.orders.markReady(merchantRef, orderRef);
+      console.log(`✅ Order ${orderRef} marked as ready. Dispatch rider alerted.`);
+
+    } catch (error) {
+      if (error instanceof ChowdeckAPIError) {
+        console.error(`❌ Failed to fulfill order ${orderRef}: ${error.message}`);
+      }
+    }
+  }
+
+  res.status(200).send('Webhook processed');
+});
+
+app.listen(3000, () => console.log('Webhook server running on port 3000'));
+```

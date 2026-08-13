@@ -1,0 +1,91 @@
+---
+title: Discounts & Promotions
+description: Configure marketing campaigns, create coupons or order slash discounts, and toggle promotional active states.
+---
+
+All discount-related APIs are grouped under the `client.m.discounts` (or `client.merchant.discounts`) sub-client.
+
+---
+
+## Methods
+
+### `list()`
+Retrieve all discounts configured for a merchant.
+
+```typescript
+const response = await client.m.discounts.list('merchant_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+- **Response**: `Promise<ListDiscountsResponse>`
+
+---
+
+### `create()`
+Create a new discount code or price slash.
+
+```typescript
+const response = await client.m.discounts.create('merchant_reference', {
+  reference: 'SUMMER_15_PERCENT',
+  title: 'Summer Promo',
+  description: '15% discount on all orders above N5,000',
+  type: 'percentage_off',
+  value: 15, // 15%
+  category: 'price_slash_off_all_orders',
+  expiry_date: '2026-09-30',
+  maximum_usage_times: 1000,
+  vendor_references: ['merchant_reference'],
+  minimum_order_amount: 500000 // N5,000 in Kobo
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: CreateDiscountPayload`
+- **Response**: `Promise<CreateDiscountResponse>`
+
+---
+
+### `update()`
+Modify an existing discount (e.g. updating the title or maximum usage limit).
+
+```typescript
+const response = await client.m.discounts.update('merchant_reference', 'discount_reference', {
+  title: 'Late Summer Promo',
+  maximum_usage_times: 1500
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `discountReference: string`
+  - `payload: Partial<CreateDiscountPayload>`
+- **Response**: `Promise<CreateDiscountResponse>`
+
+---
+
+### `activate()`
+Bulk-activate a list of discounts, making them available to customers.
+
+```typescript
+const response = await client.m.discounts.activate('merchant_reference', {
+  references: ['SUMMER_15_PERCENT', 'WELCOME_1000_OFF']
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: ActivateDiscountsPayload`
+- **Response**: `Promise<ActivateDiscountsResponse>`
+
+---
+
+### `deactivate()`
+Bulk-deactivate a list of discounts to remove them from customer availability.
+
+```typescript
+const response = await client.m.discounts.deactivate('merchant_reference', {
+  references: ['SUMMER_15_PERCENT']
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: DeactivateDiscountsPayload`
+- **Response**: `Promise<DeactivateDiscountsResponse>`

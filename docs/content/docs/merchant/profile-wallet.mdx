@@ -1,0 +1,99 @@
+---
+title: Profile & Wallet Management
+description: Manage merchant profiles, check ratings and reviews, and monitor your merchant wallet balances.
+---
+
+These methods are exposed directly at the root of the Merchant namespace `client.m` (or `client.merchant`).
+
+---
+
+## Profile Methods
+
+### `getProfile()`
+Retrieve the profile details of the merchant, including banking details, cover images, settings, and ratings.
+
+```typescript
+const response = await client.m.getProfile('merchant_reference');
+console.log(`Merchant Name: ${response.data.name}`);
+```
+- **Parameters**:
+  - `merchantReference: string`
+- **Response**: `Promise<GetMerchantProfileResponse>`
+
+---
+
+### `updateProfile()`
+Update merchant configurations (e.g. support contacts, availability hours).
+
+```typescript
+const response = await client.m.updateProfile('merchant_reference', {
+  description: 'Gourmet burgers and handcrafted shakes.',
+  support_contact: '+2348000000003'
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: Partial<MerchantProfile>`
+- **Response**: `Promise<UpdateMerchantResponse>`
+
+---
+
+### `getReviews()`
+Retrieve customer reviews and ratings submitted for the vendor.
+
+```typescript
+const response = await client.m.getReviews('merchant_reference', {
+  page: 1,
+  limit: 20
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `query?: GetVendorReviewsQueryParams`
+- **Response**: `Promise<GetVendorReviewsResponse>`
+
+---
+
+## Wallet Methods
+
+### `getWalletBalance()`
+Retrieve the current ledger balance and currency details of the merchant wallet.
+
+```typescript
+const response = await client.m.getWalletBalance('merchant_reference');
+console.log(`Balance: ${response.data.balance} ${response.data.currency}`);
+```
+- **Parameters**:
+  - `merchantReference: string`
+- **Response**: `Promise<GetMerchantWalletBalanceResponse>`
+
+---
+
+### `getWalletHistory()`
+Retrieve transactions logged in the merchant's ledger history, with optional date filters.
+
+```typescript
+const response = await client.m.getWalletHistory('merchant_reference', {
+  page: 1,
+  limit: 15,
+  start_date: '2026-08-01',
+  end_date: '2026-08-12'
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `query?: GetMerchantWalletHistoryQueryParams`
+- **Response**: `Promise<GetMerchantWalletHistoryResponse>`
+
+---
+
+### `getVirtualAccount()`
+Retrieve bank details of the virtual bank account assigned to the merchant wallet. You can use these details to fund the wallet via bank transfer.
+
+```typescript
+const response = await client.m.getVirtualAccount('merchant_reference');
+console.log(`Transfer to ${response.data.bank_name}: ${response.data.account_number}`);
+```
+- **Parameters**:
+  - `merchantReference: string`
+- **Response**: `Promise<GetMerchantVirtualAccountResponse>`

@@ -1,0 +1,89 @@
+---
+title: Redeliveries & Wallet Management
+description: Dispatch failed packages for re-attempted delivery and check your logistics wallet transactions.
+---
+
+This page details the redelivery handlers (exposed at the root of the Relay client `client.r`) and the sub-client for wallet management `client.r.wallet`.
+
+---
+
+## Redelivery Methods
+
+When a delivery attempt fails (e.g., the recipient is unreachable), you can calculate a redelivery fee and request a redelivery attempt using the original delivery reference.
+
+### `quoteRedelivery()`
+Calculate the price for attempting redelivery on a failed package. Returns a `fee_id` required for redelivery dispatch.
+
+```typescript
+const quote = await client.r.quoteRedelivery({
+  delivery_reference: 'original-failed-delivery-reference'
+});
+
+console.log(`Redelivery Cost: ${quote.data.amount} Kobo`);
+```
+- **Parameters**:
+  - `payload: GetRedeliveryFeePayload`
+  - `options?: RequestOptions`
+- **Response**: `Promise<GetRedeliveryFeeResponse>`
+
+---
+
+### `requestRedelivery()`
+Book a redelivery dispatch request. Requires the `fee_id` from `quoteRedelivery()`.
+
+```typescript
+const response = await client.r.requestRedelivery({
+  delivery_reference: 'original-failed-delivery-reference',
+  fee_id: quote.data.fee_id
+});
+
+console.log(`Redelivery Reference: ${response.data.reference}`);
+```
+- **Parameters**:
+  - `payload: RequestRedeliveryPayload`
+  - `options?: RequestOptions`
+- **Response**: `Promise<RequestRedeliveryResponse>`
+
+---
+
+## Wallet Methods
+
+All wallet transactions for logistics payments are managed under `client.r.wallet`.
+
+### `getBalance()`
+Retrieve the current ledger balance of your Relay logistics wallet.
+
+```typescript
+const response = await client.r.wallet.getBalance();
+console.log(`Logistics Wallet Balance: ${response.data.balance} Kobo`);
+```
+- **Parameters**:
+  - `options?: RequestOptions`
+- **Response**: `Promise<GetRelayWalletBalanceResponse>`
+
+---
+
+### `getAccount()`
+Retrieve the details of the virtual bank account assigned to your Relay wallet for funding.
+
+```typescript
+const response = await client.r.wallet.getAccount();
+console.log(`Bank: ${response.data.bank_name}`);
+console.log(`Virtual Account: ${response.data.account_number}`);
+```
+- **Parameters**:
+  - `options?: RequestOptions`
+- **Response**: `Promise<GetRelayVirtualAccountResponse>`
+
+---
+
+### `getHistory()`
+Retrieve all transaction records logged in your Relay wallet history.
+
+```typescript
+const response = await client.r.wallet.getHistory();
+console.log(`Recent Transaction: ${response.data[0].amount} Kobo (${response.data[0].type})`);
+```
+- **Parameters**:
+  - `options?: RequestOptions`
+- **Response**: `Promise<GetRelayWalletHistoryResponse>`

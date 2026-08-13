@@ -1,0 +1,152 @@
+---
+title: Menus & Menu Items
+description: Sync your catalogs, configure categories, list menu items, and execute bulk price or item syncs.
+---
+
+All menu-related operations are grouped under the `client.m.menus` (or `client.merchant.menus`) sub-client.
+
+---
+
+## Category Methods
+
+### `listCategories()`
+Retrieve all menu categories defined for a merchant.
+
+```typescript
+const response = await client.m.menus.listCategories('merchant_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+- **Response**: `Promise<ListMenuCategoriesResponse>`
+
+---
+
+### `createCategory()`
+Create a new category to group menu items (e.g., "Main Dishes", "Drinks").
+
+```typescript
+const response = await client.m.menus.createCategory('merchant_reference', {
+  name: 'Desserts',
+  rank: 5, // Lower ranks display first
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: CreateMenuCategoryPayload`
+- **Response**: `Promise<CreateMenuCategoryResponse>`
+
+---
+
+### `updateCategory()`
+Modify an existing category (e.g. changing its name or rank).
+
+```typescript
+const response = await client.m.menus.updateCategory('merchant_reference', 'category_reference', {
+  name: 'Sweets & Desserts',
+  rank: 4
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `categoryReference: string`
+  - `payload: Partial<CreateMenuCategoryPayload>`
+- **Response**: `Promise<UpdateMenuCategoryResponse>`
+
+---
+
+## Item Methods
+
+### `listItems()`
+Retrieve menu items with optional status filtering.
+
+```typescript
+const response = await client.m.menus.listItems('merchant_reference', {
+  status: 'active', // 'active' or 'suspended'
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `query?: ListMenuItemsQueryParams`
+- **Response**: `Promise<ListMenuItemsResponse>`
+
+---
+
+### `createItem()`
+Create a single new menu item.
+
+```typescript
+const response = await client.m.menus.createItem('merchant_reference', {
+  name: 'Double Cheeseburger',
+  price: 450000, // Price in Kobo (Naira * 100)
+  category_id: 123, // Category ID from createCategory
+  description: 'Two beef patties, cheddar cheese, pickles, and burger sauce.',
+  is_active: true
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: CreateMenuItemPayload`
+- **Response**: `Promise<CreateMenuItemResponse>`
+
+---
+
+### `getItem()`
+Retrieve full detail of a single menu item.
+
+```typescript
+const response = await client.m.menus.getItem('merchant_reference', 'item_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `itemReference: string`
+- **Response**: `Promise<GetMenuItemResponse>`
+
+---
+
+### `bulkCreateItems()`
+Upload multiple menu items in a single request. This is the recommended method for initial menu seeding.
+
+```typescript
+const response = await client.m.menus.bulkCreateItems('merchant_reference', {
+  items: [
+    {
+      name: 'Fries',
+      price: 120000, // In Kobo
+      category_id: 123,
+    },
+    {
+      name: 'Onion Rings',
+      price: 150000, // In Kobo
+      category_id: 123,
+    }
+  ]
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: BulkCreateMenuItemsPayload`
+- **Response**: `Promise<BulkCreateMenuItemsResponse>`
+
+---
+
+### `bulkUpdateItems()`
+Update prices, descriptions, or availability states for multiple menu items in bulk.
+
+```typescript
+const response = await client.m.menus.bulkUpdateItems('merchant_reference', {
+  items: [
+    {
+      reference: 'item-ref-1',
+      price: 480000, // Update price
+    },
+    {
+      reference: 'item-ref-2',
+      is_active: false, // Suspend item
+    }
+  ]
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `payload: BulkUpdateMenuItemsPayload`
+- **Response**: `Promise<BulkUpdateMenuItemsResponse>`

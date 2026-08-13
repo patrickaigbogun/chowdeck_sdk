@@ -1,0 +1,79 @@
+---
+title: Error Handling
+description: How to intercept, parse, and recover from failures in the Chwdck SDK.
+---
+
+The Chwdck SDK organizes failures into structured exceptions that separate API-level issues from network-level transport issues. 
+
+All custom errors inherit from the base class `ChowdeckError`.
+
+---
+
+## Error Classes
+
+### `ChowdeckAPIError`
+Thrown when the request successfully reaches the Chowdeck servers, but the server returns a non-2xx response status code.
+
+- **Properties**:
+  - `statusCode: number` - The HTTP response status code (e.g. `400`, `401`, `404`, `500`).
+  - `message: string` - The error description. The SDK automatically extracts this from the response body (looking for `message` or `error` properties). If missing, it falls back to a generic HTTP status description.
+  - `responseData: unknown` - The raw unparsed JSON/text payload returned by the server.
+  - `requestDetails: { url: string; method: string }` - Metadata about the request that triggered the failure.
+
+---
+
+### `ChowdeckConnectionError`
+Thrown when the request fails to reach the Chowdeck API servers (e.g. DNS resolution errors, socket timeouts, network loss).
+
+- **Properties**:
+  - `message: string` - A user-friendly error description.
+  - `originalError: Error` - The underlying native fetch error.
+
+---
+
+### `ChowdeckError`
+The base class for all SDK-specific errors. You can use it to catch any error thrown by the library.
+
+---
+
+## Code Example
+
+```typescript
+import { chowdeck, ChowdeckAPIError, ChowdeckConnectionError } from 'chwdck';
+
+const client = chowdeck({ apiKey: 'YOUR_API_KEY' });
+
+try {
+  // Attempting to retrieve a non-existent delivery reference
+  await client.r.deliveries.get('non_existent_ref');
+} catch (error) {
+  if (error instanceof ChowdeckAPIError) {
+    // Intercept API errors (4xx / 5xx)
+    console.error(`❌ API Error: ${error.message}`);
+    console.error(`- Status Code: ${error.statusCode}`);
+    console.error(`- Request Path: [${error.requestDetails?.method}] ${error.requestDetails?.url}`);
+    console.error(`- Server Details:`, JSON.stringify(error.responseData));
+    
+  } else if (error instanceof ChowdeckConnectionError) {
+    // Intercept network-level transport errors
+    console.error(`❌ Connection failed: ${error.message}`);
+    console.error(`- Root cause: ${error.originalError.message}`);
+    
+  } else {
+    // Other errors (e.g., programming mistakes, validation exceptions)
+    console.error(`❌ Unexpected error:`, error);
+  }
+}
+```
+---
+
+## Common API Status Codes
+
+| Code | Meaning | Common Reasons |
+| :--- | :--- | :--- |
+| **`400`** | Bad Request | Missing or invalid parameters, incorrect query formatting. |
+| **`401`** | Unauthorized | Missing API key, incorrect key, or invalid HMAC webhook signature. |
+| **`403`** | Forbidden | The API key lacks permission for the specific resource. |
+| **`404`** | Not Found | The requested resource (order, menu item, or delivery reference) does not exist. |
+| **`422`** | Unprocessable | Logic validation failed (e.g., quoting a delivery with invalid coordinates). |
+| **`500`** | Internal Error | An unexpected server error occurred on Chowdeck's side. |

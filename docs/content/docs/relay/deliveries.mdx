@@ -1,0 +1,92 @@
+---
+title: Deliveries & Quotes
+description: Request delivery pricing quotes, book on-demand deliveries, track packages, and cancel orders.
+---
+
+All package logistics operations are grouped under the `client.r.deliveries` (or `client.relay.deliveries`) sub-client.
+
+---
+
+## Methods
+
+### `quote()`
+Calculate the delivery fee for a package delivery based on pickup and drop-off coordinates. A successful quote returns a `fee_id` which is required to book a delivery and is valid for a limited duration.
+
+```typescript
+const quote = await client.r.deliveries.quote({
+  pickup: {
+    address: '12 Herbert Macaulay Way, Yaba, Lagos',
+    latitude: 6.5022,
+    longitude: 3.3768,
+    contact: {
+      name: 'John Doe',
+      phone: '+2348000000001'
+    }
+  },
+  dropoff: {
+    address: '90 Allen Avenue, Ikeja, Lagos',
+    latitude: 6.5986,
+    longitude: 3.3542,
+    contact: {
+      name: 'Jane Smith',
+      phone: '+2348000000002'
+    }
+  }
+});
+
+console.log(`Fee Quote ID: ${quote.data.fee_id}`);
+console.log(`Delivery Cost: ${quote.data.amount} Kobo`);
+```
+- **Parameters**:
+  - `payload: GetDeliveryFeePayload` - Location coordinates and contact details.
+  - `options?: RequestOptions` - Optional headers or custom parameters.
+- **Response**: `Promise<GetDeliveryFeeResponse>`
+
+---
+
+### `create()`
+Create (book) a delivery. You must pass the `fee_id` obtained from the `quote()` method.
+
+```typescript
+const delivery = await client.r.deliveries.create({
+  fee_id: quote.data.fee_id,
+  description: 'Gourmet Pastry Box',
+  notes: 'Fragile: handle with care.' // Optional
+});
+
+console.log(`Delivery Created! Reference: ${delivery.data.reference}`);
+```
+- **Parameters**:
+  - `payload: CreateRelayDeliveryPayload` - Fee ID and package metadata.
+  - `options?: RequestOptions`
+- **Response**: `Promise<CreateRelayDeliveryResponse>`
+
+---
+
+### `get()`
+Retrieve the status and full details of a delivery. Use this endpoint to track dispatch riders and monitor packages.
+
+```typescript
+const tracking = await client.r.deliveries.get('delivery-reference');
+console.log(`Current Status: ${tracking.data.status}`);
+```
+- **Parameters**:
+  - `reference: string` - Unique delivery reference.
+  - `options?: RequestOptions`
+- **Response**: `Promise<GetRelayDeliveryResponse>`
+
+---
+
+### `cancel()`
+Cancel an active delivery. You must provide a cancellation reason. Cancellations are only allowed before a dispatch rider accepts/reaches the pickup location.
+
+```typescript
+const response = await client.r.deliveries.cancel('delivery-reference', {
+  reason: 'Customer cancelled the order'
+});
+```
+- **Parameters**:
+  - `reference: string`
+  - `payload: CancelRelayDeliveryPayload`
+  - `options?: RequestOptions`
+- **Response**: `Promise<CancelRelayDeliveryResponse>`

@@ -1,0 +1,100 @@
+---
+title: Orders Management
+description: Manage order lifecycles, accept or reject incoming purchases, and propose item substitutions.
+---
+
+All order-related APIs are grouped under the `client.m.orders` (or `client.merchant.orders`) sub-client. 
+
+---
+
+## Methods
+
+### `list()`
+Retrieve a list of orders for a specific merchant, optionally filtered by status, dates, or pagination.
+
+```typescript
+const response = await client.m.orders.list('merchant_reference', {
+  status: 'preparing', // Optional: 'received', 'preparing', 'ready', 'completed', 'rejected'
+  page: 1,
+  limit: 20
+});
+```
+- **Parameters**:
+  - `merchantReference: string` - Unique identifier of the merchant.
+  - `query?: ListOrdersQueryParams` - Optional query parameters.
+- **Response**: `Promise<ListOrdersResponse>`
+
+---
+
+### `get()`
+Retrieve full details of a single order.
+
+```typescript
+const response = await client.m.orders.get('merchant_reference', 'order_reference');
+console.log(`Order Total: ${response.data.total_amount}`);
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `orderReference: string`
+- **Response**: `Promise<GetOrderResponse>`
+
+---
+
+### `accept()`
+Accept an incoming order. This transitions the order status to `preparing` and notifies the customer and dispatch networks.
+
+```typescript
+const response = await client.m.orders.accept('merchant_reference', 'order_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `orderReference: string`
+- **Response**: `Promise<AcceptOrderResponse>`
+
+---
+
+### `reject()`
+Reject an order if it cannot be fulfilled (e.g., out of stock, kitchen closed).
+
+```typescript
+const response = await client.m.orders.reject('merchant_reference', 'order_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `orderReference: string`
+- **Response**: `Promise<RejectOrderResponse>`
+
+---
+
+### `markReady()`
+Mark a preparing order as ready for pickup. This alerts the dispatch rider that the package is packaged and awaiting collection.
+
+```typescript
+const response = await client.m.orders.markReady('merchant_reference', 'order_reference');
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `orderReference: string`
+- **Response**: `Promise<MarkOrderReadyResponse>`
+
+---
+
+### `substitute()`
+Propose item substitutions to a customer when an ordered item is unavailable.
+
+```typescript
+const response = await client.m.orders.substitute('merchant_reference', 'order_reference', {
+  items: [
+    {
+      original_item_id: 'original-item-uuid',
+      substituted_item_id: 'replacement-item-uuid',
+      quantity: 1
+    }
+  ]
+});
+```
+- **Parameters**:
+  - `merchantReference: string`
+  - `orderReference: string`
+  - `payload: SubmitOrderSubstitutionPayload`
+- **Response**: `Promise<SubmitOrderSubstitutionResponse>`

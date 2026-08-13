@@ -1,0 +1,43 @@
+---
+title: Introduction & Philosophy
+description: The core design choices, architecture, and principles behind the Chwdck TypeScript SDK.
+---
+
+Welcome to the **Chwdck TypeScript SDK** documentation. This SDK provides developers with an idiomatic, fluent, and 100% type-safe interface to interact with Chowdeck's Merchant and Relay APIs.
+
+---
+
+## The Philosophy of the SDK
+
+Designing an API integration client requires making careful, deliberate trade-offs. The Chwdck SDK was built around three core architectural tenets:
+
+### 1. Transparent by Default
+We believe an SDK should remove the plumbing of HTTP integration (headers, JSON parsing, URL building) without hiding the HTTP layer itself. If a request fails, the SDK does not wrap it in obscure, unhelpful abstractions. Instead:
+- It throws a structured `ChowdeckAPIError` that exposes the raw HTTP status code, request URL/method, and parsed response body.
+- Developers see exactly what the server returned, making debugging fast and intuitive.
+
+### 2. Fluent & Domain-Aligned Chaining
+The interface mirrors how developers actually interact with Chowdeck. We use namespace chaining to divide responsibilities:
+- `client.m` (or `client.merchant`) for all Merchant operations.
+- `client.r` (or `client.relay`) for all logistics and delivery operations.
+- Fluent chaining leads to highly readable code: `client.m.orders.accept(merchantRef, orderRef)`.
+
+### 3. Lightweight & Dual-Module
+The SDK has **zero runtime dependencies** besides Node's native APIs. It targets Node.js (>=18.0.0) and uses native `fetch` under the hood. It compiles to both ES Modules (`.js`) and CommonJS (`.cjs`) with full TypeScript declaration maps (`.d.ts` / `.d.cts`) using NodeNext module resolution.
+
+---
+
+## The 8 Dimensions of Our SDK Design
+
+To ensure the SDK meets the highest engineering standards, it was designed across 8 critical dimensions:
+
+| Dimension | Our Design Decisions |
+| :--- | :--- |
+| **1. Product / UX** | **Simple quickstart**: Get a client running in 2 lines. Namespace partitioning (`.m` vs `.r`) keeps the surface area logical. |
+| **2. Public API** | **Fluent namespaces**: Method signatures use descriptive names, and type maps provide 100% compile-time autocomplete. |
+| **3. Language Idioms** | **TS/JS Best Practices**: Uses lowercase camelCase factories (`import { chowdeck }`), ESM compatibility, and explicit `.js` import resolution. |
+| **4. Network Layer** | **Native engine**: Wraps Node's native `fetch` directly. It supports headers customization and custom query building dynamically. |
+| **5. Failure Design** | **Transparent exceptions**: Differentiates clearly between **connection failures** (`ChowdeckConnectionError`) and **API response failures** (`ChowdeckAPIError`). |
+| **6. Security** | **Timing-safe validation**: Implements `verifySignature` using Node's `crypto.timingSafeEqual` to safeguard webhook endpoints. |
+| **7. Ecosystem** | **Zero bloating**: Ships zero production dependencies. Bundled via `tsup` for dual ESM/CJS compatibility. |
+| **8. Lifecycle** | **Automated generation**: Type definitions are compiled directly from scraped OpenAPI JSON definitions to keep them up to date with the API. |
