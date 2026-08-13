@@ -1,0 +1,33 @@
+name: Open Release Pull Request
+
+on:
+  push:
+    branches:
+      - 'release/v*'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  open-pr:
+    name: Open Pull Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Checking if PR exists or creating new one for release branch release/v$VERSION..."
+          
+          # Create PR using the GitHub CLI (gh)
+          gh pr create \
+            --title "chore(release): v$VERSION" \
+            --body "Automated release Pull Request for version v$VERSION. Merging this PR will tag the commit and publish the package to NPM." \
+            --base master \
+            --head release/v$VERSION || echo "::warning::PR already exists or workflow permissions need to be enabled."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
