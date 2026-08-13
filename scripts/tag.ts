@@ -45,21 +45,27 @@ async function main() {
     console.log("🔒 Syncing bun.lock lockfile...");
     execSync("bun install", { stdio: "inherit" });
 
-    // Fetch the new version number
     const pkgPath = path.resolve(process.cwd(), "package.json");
     const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
     const nextVersion = `v${pkg.version}`;
     const releaseBranch = `release/${nextVersion}`;
 
-    console.log(`\n🌿 Creating new release branch: ${releaseBranch}...`);
+    console.log(`\n🌿 Preparing release branch: ${releaseBranch}...`);
+    // Delete branch locally if it exists from a previous run
+    try {
+      execSync(`git branch -D ${releaseBranch}`, { stdio: "ignore" });
+    } catch (e) {}
+
     execSync(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
 
     console.log(`\n💾 Committing version bump: ${nextVersion}...`);
+    // 5. Commit package.json and bun.lock
     execSync("git add package.json bun.lock", { stdio: "inherit" });
     execSync(`git commit -m "chore(release): ${nextVersion}"`, { stdio: "inherit" });
 
     console.log(`📤 Pushing branch ${releaseBranch} to origin...`);
-    execSync(`git push -u origin ${releaseBranch}`, { stdio: "inherit" });
+    // 6. Push the commit to release branch
+    execSync(`git push -u origin ${releaseBranch} --force`, { stdio: "inherit" });
 
     // Return to original branch
     execSync(`git checkout ${currentBranch}`, { stdio: "inherit" });
