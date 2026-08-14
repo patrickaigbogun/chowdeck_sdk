@@ -25,7 +25,7 @@ async function testApiCall() {
     if (error instanceof ChowdeckAPIError) {
       console.log('Caught expected ChowdeckAPIError:');
       console.log(`- Status Code:      ${error.statusCode}`);
-      console.log(`- Error Message:    ${error.mebussage}`);
+      console.log(`- Error Message:    ${error.message}`);
       console.log(`- Response Payload:`, error.responseData);
       console.log(`- Request URL:      ${error.requestDetails?.url}`);
     } else if (error instanceof ChowdeckConnectionError) {
@@ -42,4 +42,3 @@ await testApiCall();
 console.log('\n--------------------------------------------------');
 
 
-agy --conversation=be0e33b5-29a7-4ad0-bcb9-96a09551c34e

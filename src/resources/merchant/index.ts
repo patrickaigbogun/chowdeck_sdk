@@ -1,17 +1,17 @@
-import { BaseResource } from '../base.js';
-import { MerchantOrdersResource } from './orders.js';
-import { MerchantMenusResource } from './menus.js';
-import { MerchantDiscountsResource } from './discounts.js';
 import type {
-  UpdateMerchantPayload,
-  UpdateMerchantResponse,
   GetMerchantProfileResponse,
-  GetVendorReviewsQueryParams,
-  GetVendorReviewsResponse,
   GetMerchantVirtualAccountResponse,
   GetMerchantWalletBalanceResponse,
   GetMerchantWalletHistoryResponse,
+  GetVendorReviewsQueryParams,
+  GetVendorReviewsResponse,
+  UpdateMerchantPayload,
+  UpdateMerchantResponse,
 } from '../../types/index.js';
+import { BaseResource } from '../base.js';
+import { MerchantDiscountsResource } from './discounts.js';
+import { MerchantMenusResource } from './menus.js';
+import { MerchantOrdersResource } from './orders.js';
 
 export class MerchantResource extends BaseResource {
   public readonly orders: MerchantOrdersResource;
@@ -29,8 +29,12 @@ export class MerchantResource extends BaseResource {
    * Get merchant profile details.
    * GET /merchant/{merchantReference}
    */
-  async getProfile(merchantReference: string): Promise<GetMerchantProfileResponse> {
-    return this.httpGet<GetMerchantProfileResponse>(`/merchant/${merchantReference}`);
+  async getProfile(
+    merchantReference: string,
+  ): Promise<GetMerchantProfileResponse> {
+    return this.httpGet<GetMerchantProfileResponse>(
+      `/merchant/${merchantReference}`,
+    );
   }
 
   /**
@@ -39,9 +43,12 @@ export class MerchantResource extends BaseResource {
    */
   async updateProfile(
     merchantReference: string,
-    payload: UpdateMerchantPayload
+    payload: UpdateMerchantPayload,
   ): Promise<UpdateMerchantResponse> {
-    return this.httpPut<UpdateMerchantResponse>(`/merchant/${merchantReference}`, payload);
+    return this.httpPut<UpdateMerchantResponse>(
+      `/merchant/${merchantReference}`,
+      payload,
+    );
   }
 
   /**
@@ -50,11 +57,14 @@ export class MerchantResource extends BaseResource {
    */
   async getReviews(
     merchantReference: string,
-    query?: GetVendorReviewsQueryParams
+    query?: GetVendorReviewsQueryParams,
   ): Promise<GetVendorReviewsResponse> {
-    return this.httpGet<GetVendorReviewsResponse>(`/merchant/${merchantReference}/reviews`, {
-      query: query as Record<string, any>,
-    });
+    return this.httpGet<GetVendorReviewsResponse>(
+      `/merchant/${merchantReference}/reviews`,
+      {
+        query: query as Record<string, any>,
+      },
+    );
   }
 
   /**
@@ -62,10 +72,10 @@ export class MerchantResource extends BaseResource {
    * GET /merchant/{merchantReference}/wallet/virtual-account
    */
   async getVirtualAccount(
-    merchantReference: string
+    merchantReference: string,
   ): Promise<GetMerchantVirtualAccountResponse> {
     return this.httpGet<GetMerchantVirtualAccountResponse>(
-      `/merchant/${merchantReference}/wallet/virtual-account`
+      `/merchant/${merchantReference}/wallet/virtual-account`,
     );
   }
 
@@ -74,10 +84,10 @@ export class MerchantResource extends BaseResource {
    * GET /merchant/{merchantReference}/wallet/balance
    */
   async getWalletBalance(
-    merchantReference: string
+    merchantReference: string,
   ): Promise<GetMerchantWalletBalanceResponse> {
     return this.httpGet<GetMerchantWalletBalanceResponse>(
-      `/merchant/${merchantReference}/wallet/balance`
+      `/merchant/${merchantReference}/wallet/balance`,
     );
   }
 
@@ -86,10 +96,10 @@ export class MerchantResource extends BaseResource {
    * GET /merchant/{merchantReference}/wallet/history
    */
   async getWalletHistory(
-    merchantReference: string
+    merchantReference: string,
   ): Promise<GetMerchantWalletHistoryResponse> {
     return this.httpGet<GetMerchantWalletHistoryResponse>(
-      `/merchant/${merchantReference}/wallet/history`
+      `/merchant/${merchantReference}/wallet/history`,
     );
   }
 }

@@ -26,9 +26,11 @@ export abstract class BaseResource {
     method: string,
     path: string,
     body?: unknown,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
-    const url = new URL(`${this.client.baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`);
+    const url = new URL(
+      `${this.client.baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`,
+    );
 
     if (options?.query) {
       Object.entries(options.query).forEach(([key, value]) => {
@@ -39,9 +41,9 @@ export abstract class BaseResource {
     }
 
     const headers = new Headers({
-      'Authorization': `Bearer ${this.client.apiKey}`,
+      Authorization: `Bearer ${this.client.apiKey}`,
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
       ...options?.headers,
     });
 
@@ -60,7 +62,7 @@ export abstract class BaseResource {
     } catch (error) {
       throw new ChowdeckConnectionError(
         `Failed to establish connection to Chowdeck API at ${url.toString()}`,
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
 
@@ -85,7 +87,7 @@ export abstract class BaseResource {
         `Chowdeck API Request Failed: ${method} ${path}`,
         response.status,
         responseData,
-        { url: url.toString(), method }
+        { url: url.toString(), method },
       );
     }
 
@@ -96,15 +98,27 @@ export abstract class BaseResource {
     return this.request<T>('GET', path, undefined, options);
   }
 
-  protected httpPost<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+  protected httpPost<T>(
+    path: string,
+    body?: unknown,
+    options?: RequestOptions,
+  ): Promise<T> {
     return this.request<T>('POST', path, body, options);
   }
 
-  protected httpPut<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+  protected httpPut<T>(
+    path: string,
+    body?: unknown,
+    options?: RequestOptions,
+  ): Promise<T> {
     return this.request<T>('PUT', path, body, options);
   }
 
-  protected httpPatch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
+  protected httpPatch<T>(
+    path: string,
+    body?: unknown,
+    options?: RequestOptions,
+  ): Promise<T> {
     return this.request<T>('PATCH', path, body, options);
   }
 

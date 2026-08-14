@@ -44,7 +44,9 @@ export class Chowdeck {
 
   constructor(config: ChowdeckConfig) {
     if (!config.apiKey) {
-      throw new Error('Chowdeck API key is required. Make sure to provide a valid apiKey.');
+      throw new Error(
+        'Chowdeck API key is required. Make sure to provide a valid apiKey.',
+      );
     }
 
     this.apiKey = config.apiKey;

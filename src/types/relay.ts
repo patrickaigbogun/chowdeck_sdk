@@ -1,4 +1,9 @@
-import type { OrderCustomer, OrderAddress, OrderItem, OrderTimelineEntry } from './merchant.js';
+import type {
+  OrderAddress,
+  OrderCustomer,
+  OrderItem,
+  OrderTimelineEntry,
+} from './merchant.js';
 
 /**
  * Payload for requesting a delivery fee quote.

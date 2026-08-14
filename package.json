@@ -24,12 +24,14 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "biome check src",
+    "format": "biome check --write src",
     "tag": "bun scripts/tag.ts"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.8",
     "@types/node": "^26.2.0",
+    "dokugen": "^14.0.9",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^1.2.1"

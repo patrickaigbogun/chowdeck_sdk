@@ -1,10 +1,10 @@
-import { BaseResource } from '../base.js';
-import type { RequestOptions } from '../base.js';
 import type {
-  GetRelayWalletBalanceResponse,
   GetRelayVirtualAccountResponse,
+  GetRelayWalletBalanceResponse,
   GetRelayWalletHistoryResponse,
 } from '../../types/index.js';
+import type { RequestOptions } from '../base.js';
+import { BaseResource } from '../base.js';
 
 /**
  * Resource class for interacting with the Chowdeck Relay Wallet APIs.
@@ -16,8 +16,13 @@ export class Wallet extends BaseResource {
    * @param options - Additional request options (headers, query parameters).
    * @returns A promise resolving to the wallet balance.
    */
-  async getBalance(options?: RequestOptions): Promise<GetRelayWalletBalanceResponse> {
-    return this.httpGet<GetRelayWalletBalanceResponse>('/relay/wallet/balance', options);
+  async getBalance(
+    options?: RequestOptions,
+  ): Promise<GetRelayWalletBalanceResponse> {
+    return this.httpGet<GetRelayWalletBalanceResponse>(
+      '/relay/wallet/balance',
+      options,
+    );
   }
 
   /**
@@ -26,8 +31,13 @@ export class Wallet extends BaseResource {
    * @param options - Additional request options (headers, query parameters).
    * @returns A promise resolving to the virtual bank account details.
    */
-  async getAccount(options?: RequestOptions): Promise<GetRelayVirtualAccountResponse> {
-    return this.httpGet<GetRelayVirtualAccountResponse>('/relay/wallet/virtual-account', options);
+  async getAccount(
+    options?: RequestOptions,
+  ): Promise<GetRelayVirtualAccountResponse> {
+    return this.httpGet<GetRelayVirtualAccountResponse>(
+      '/relay/wallet/virtual-account',
+      options,
+    );
   }
 
   /**
@@ -36,7 +46,12 @@ export class Wallet extends BaseResource {
    * @param options - Additional request options (headers, query parameters).
    * @returns A promise resolving to the wallet transaction history.
    */
-  async getHistory(options?: RequestOptions): Promise<GetRelayWalletHistoryResponse> {
-    return this.httpGet<GetRelayWalletHistoryResponse>('/relay/wallet/history', options);
+  async getHistory(
+    options?: RequestOptions,
+  ): Promise<GetRelayWalletHistoryResponse> {
+    return this.httpGet<GetRelayWalletHistoryResponse>(
+      '/relay/wallet/history',
+      options,
+    );
   }
 }

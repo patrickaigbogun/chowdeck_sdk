@@ -1,13 +1,13 @@
-import { BaseResource } from '../base.js';
 import type {
-  CreateDiscountPayload,
-  ListDiscountsResponse,
-  CreateDiscountResponse,
   ActivateDiscountsPayload,
   ActivateDiscountsResponse,
+  CreateDiscountPayload,
+  CreateDiscountResponse,
   DeactivateDiscountsPayload,
   DeactivateDiscountsResponse,
+  ListDiscountsResponse,
 } from '../../types/index.js';
+import { BaseResource } from '../base.js';
 
 export class MerchantDiscountsResource extends BaseResource {
   /**
@@ -15,7 +15,9 @@ export class MerchantDiscountsResource extends BaseResource {
    * GET /merchant/{merchantReference}/discounts
    */
   async list(merchantReference: string): Promise<ListDiscountsResponse> {
-    return this.httpGet<ListDiscountsResponse>(`/merchant/${merchantReference}/discounts`);
+    return this.httpGet<ListDiscountsResponse>(
+      `/merchant/${merchantReference}/discounts`,
+    );
   }
 
   /**
@@ -24,9 +26,12 @@ export class MerchantDiscountsResource extends BaseResource {
    */
   async create(
     merchantReference: string,
-    payload: CreateDiscountPayload
+    payload: CreateDiscountPayload,
   ): Promise<CreateDiscountResponse> {
-    return this.httpPost<CreateDiscountResponse>(`/merchant/${merchantReference}/discounts`, payload);
+    return this.httpPost<CreateDiscountResponse>(
+      `/merchant/${merchantReference}/discounts`,
+      payload,
+    );
   }
 
   /**
@@ -36,11 +41,11 @@ export class MerchantDiscountsResource extends BaseResource {
   async update(
     merchantReference: string,
     discountReference: string,
-    payload: Partial<CreateDiscountPayload>
+    payload: Partial<CreateDiscountPayload>,
   ): Promise<CreateDiscountResponse> {
     return this.httpPut<CreateDiscountResponse>(
       `/merchant/${merchantReference}/discounts/${discountReference}`,
-      payload
+      payload,
     );
   }
 
@@ -50,11 +55,11 @@ export class MerchantDiscountsResource extends BaseResource {
    */
   async activate(
     merchantReference: string,
-    payload: ActivateDiscountsPayload
+    payload: ActivateDiscountsPayload,
   ): Promise<ActivateDiscountsResponse> {
     return this.httpPatch<ActivateDiscountsResponse>(
       `/merchant/${merchantReference}/discounts/activate`,
-      payload
+      payload,
     );
   }
 
@@ -64,13 +69,13 @@ export class MerchantDiscountsResource extends BaseResource {
    */
   async deactivate(
     merchantReference: string,
-    payload: DeactivateDiscountsPayload
+    payload: DeactivateDiscountsPayload,
   ): Promise<DeactivateDiscountsResponse> {
     // Standard BaseResource.httpDelete does not take a body, so we call request directly.
     return this.request<DeactivateDiscountsResponse>(
       'DELETE',
       `/merchant/${merchantReference}/discounts/deactivate`,
-      payload
+      payload,
     );
   }
 }

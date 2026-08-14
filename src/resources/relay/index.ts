@@ -1,13 +1,13 @@
-import { BaseResource } from '../base.js';
-import type { RequestOptions } from '../base.js';
-import { Deliveries } from './deliveries.js';
-import { Wallet } from './wallet.js';
 import type {
   GetRedeliveryFeePayload,
   GetRedeliveryFeeResponse,
   RequestRedeliveryPayload,
   RequestRedeliveryResponse,
 } from '../../types/index.js';
+import type { RequestOptions } from '../base.js';
+import { BaseResource } from '../base.js';
+import { Deliveries } from './deliveries.js';
+import { Wallet } from './wallet.js';
 
 /**
  * Resource class for interacting with the Chowdeck Relay APIs.
@@ -34,9 +34,13 @@ export class RelayResource extends BaseResource {
    */
   async quoteRedelivery(
     payload: GetRedeliveryFeePayload,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<GetRedeliveryFeeResponse> {
-    return this.httpPost<GetRedeliveryFeeResponse>('/relay/redelivery/fee', payload, options);
+    return this.httpPost<GetRedeliveryFeeResponse>(
+      '/relay/redelivery/fee',
+      payload,
+      options,
+    );
   }
 
   /**
@@ -49,9 +53,13 @@ export class RelayResource extends BaseResource {
    */
   async requestRedelivery(
     payload: RequestRedeliveryPayload,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<RequestRedeliveryResponse> {
-    return this.httpPost<RequestRedeliveryResponse>('/relay/redelivery', payload, options);
+    return this.httpPost<RequestRedeliveryResponse>(
+      '/relay/redelivery',
+      payload,
+      options,
+    );
   }
 }
 export { Deliveries } from './deliveries.js';

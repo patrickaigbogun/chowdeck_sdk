@@ -1,27 +1,31 @@
-import { BaseResource } from '../base.js';
 import type {
-  CreateMenuCategoryPayload,
-  CreateMenuCategoryResponse,
-  UpdateMenuCategoryPayload,
-  UpdateMenuCategoryResponse,
-  ListMenuCategoriesResponse,
-  CreateMenuItemPayload,
-  CreateMenuItemResponse,
-  ListMenuItemsResponse,
-  GetMenuItemResponse,
   BulkCreateMenuItemsPayload,
   BulkCreateMenuItemsResponse,
   BulkUpdateMenuItemsPayload,
   BulkUpdateMenuItemsResponse,
+  CreateMenuCategoryPayload,
+  CreateMenuCategoryResponse,
+  CreateMenuItemPayload,
+  CreateMenuItemResponse,
+  GetMenuItemResponse,
+  ListMenuCategoriesResponse,
+  ListMenuItemsResponse,
+  UpdateMenuCategoryPayload,
+  UpdateMenuCategoryResponse,
 } from '../../types/index.js';
+import { BaseResource } from '../base.js';
 
 export class MerchantMenusResource extends BaseResource {
   /**
    * List menu categories for a merchant.
    * GET /merchant/{merchantReference}/menucategory
    */
-  async listCategories(merchantReference: string): Promise<ListMenuCategoriesResponse> {
-    return this.httpGet<ListMenuCategoriesResponse>(`/merchant/${merchantReference}/menucategory`);
+  async listCategories(
+    merchantReference: string,
+  ): Promise<ListMenuCategoriesResponse> {
+    return this.httpGet<ListMenuCategoriesResponse>(
+      `/merchant/${merchantReference}/menucategory`,
+    );
   }
 
   /**
@@ -30,9 +34,12 @@ export class MerchantMenusResource extends BaseResource {
    */
   async createCategory(
     merchantReference: string,
-    payload: CreateMenuCategoryPayload
+    payload: CreateMenuCategoryPayload,
   ): Promise<CreateMenuCategoryResponse> {
-    return this.httpPost<CreateMenuCategoryResponse>(`/merchant/${merchantReference}/menucategory`, payload);
+    return this.httpPost<CreateMenuCategoryResponse>(
+      `/merchant/${merchantReference}/menucategory`,
+      payload,
+    );
   }
 
   /**
@@ -42,11 +49,11 @@ export class MerchantMenusResource extends BaseResource {
   async updateCategory(
     merchantReference: string,
     categoryReference: string,
-    payload: UpdateMenuCategoryPayload
+    payload: UpdateMenuCategoryPayload,
   ): Promise<UpdateMenuCategoryResponse> {
     return this.httpPut<UpdateMenuCategoryResponse>(
       `/merchant/${merchantReference}/menucategory/${categoryReference}`,
-      payload
+      payload,
     );
   }
 
@@ -55,7 +62,9 @@ export class MerchantMenusResource extends BaseResource {
    * GET /merchant/{merchantReference}/menu/items
    */
   async listItems(merchantReference: string): Promise<ListMenuItemsResponse> {
-    return this.httpGet<ListMenuItemsResponse>(`/merchant/${merchantReference}/menu/items`);
+    return this.httpGet<ListMenuItemsResponse>(
+      `/merchant/${merchantReference}/menu/items`,
+    );
   }
 
   /**
@@ -64,9 +73,12 @@ export class MerchantMenusResource extends BaseResource {
    */
   async createItem(
     merchantReference: string,
-    payload: CreateMenuItemPayload
+    payload: CreateMenuItemPayload,
   ): Promise<CreateMenuItemResponse> {
-    return this.httpPost<CreateMenuItemResponse>(`/merchant/${merchantReference}/menu/items`, payload);
+    return this.httpPost<CreateMenuItemResponse>(
+      `/merchant/${merchantReference}/menu/items`,
+      payload,
+    );
   }
 
   /**
@@ -75,9 +87,11 @@ export class MerchantMenusResource extends BaseResource {
    */
   async getItem(
     merchantReference: string,
-    itemReference: string
+    itemReference: string,
   ): Promise<GetMenuItemResponse> {
-    return this.httpGet<GetMenuItemResponse>(`/merchant/${merchantReference}/menu/items/${itemReference}`);
+    return this.httpGet<GetMenuItemResponse>(
+      `/merchant/${merchantReference}/menu/items/${itemReference}`,
+    );
   }
 
   /**
@@ -86,9 +100,12 @@ export class MerchantMenusResource extends BaseResource {
    */
   async bulkCreateItems(
     merchantReference: string,
-    payload: BulkCreateMenuItemsPayload
+    payload: BulkCreateMenuItemsPayload,
   ): Promise<BulkCreateMenuItemsResponse> {
-    return this.httpPost<BulkCreateMenuItemsResponse>(`/merchant/${merchantReference}/menu/items/bulk`, payload);
+    return this.httpPost<BulkCreateMenuItemsResponse>(
+      `/merchant/${merchantReference}/menu/items/bulk`,
+      payload,
+    );
   }
 
   /**
@@ -97,8 +114,11 @@ export class MerchantMenusResource extends BaseResource {
    */
   async bulkUpdateItems(
     merchantReference: string,
-    payload: BulkUpdateMenuItemsPayload
+    payload: BulkUpdateMenuItemsPayload,
   ): Promise<BulkUpdateMenuItemsResponse> {
-    return this.httpPut<BulkUpdateMenuItemsResponse>(`/merchant/${merchantReference}/menu/items/bulk`, payload);
+    return this.httpPut<BulkUpdateMenuItemsResponse>(
+      `/merchant/${merchantReference}/menu/items/bulk`,
+      payload,
+    );
   }
 }

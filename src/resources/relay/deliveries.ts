@@ -1,14 +1,14 @@
-import { BaseResource } from '../base.js';
-import type { RequestOptions } from '../base.js';
 import type {
-  GetDeliveryFeePayload,
-  GetDeliveryFeeResponse,
-  CreateRelayDeliveryPayload,
-  CreateRelayDeliveryResponse,
-  GetRelayDeliveryResponse,
   CancelRelayDeliveryPayload,
   CancelRelayDeliveryResponse,
+  CreateRelayDeliveryPayload,
+  CreateRelayDeliveryResponse,
+  GetDeliveryFeePayload,
+  GetDeliveryFeeResponse,
+  GetRelayDeliveryResponse,
 } from '../../types/index.js';
+import type { RequestOptions } from '../base.js';
+import { BaseResource } from '../base.js';
 
 /**
  * Resource class for interacting with Chowdeck Relay Deliveries APIs.
@@ -24,9 +24,13 @@ export class Deliveries extends BaseResource {
    */
   async quote(
     payload: GetDeliveryFeePayload,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<GetDeliveryFeeResponse> {
-    return this.httpPost<GetDeliveryFeeResponse>('/relay/delivery/fee', payload, options);
+    return this.httpPost<GetDeliveryFeeResponse>(
+      '/relay/delivery/fee',
+      payload,
+      options,
+    );
   }
 
   /**
@@ -38,9 +42,13 @@ export class Deliveries extends BaseResource {
    */
   async create(
     payload: CreateRelayDeliveryPayload,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<CreateRelayDeliveryResponse> {
-    return this.httpPost<CreateRelayDeliveryResponse>('/relay/delivery', payload, options);
+    return this.httpPost<CreateRelayDeliveryResponse>(
+      '/relay/delivery',
+      payload,
+      options,
+    );
   }
 
   /**
@@ -52,9 +60,14 @@ export class Deliveries extends BaseResource {
    */
   async get<T = GetRelayDeliveryResponse>(
     reference: string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
-    return this.request<T>('GET', `/relay/delivery/${encodeURIComponent(reference)}`, undefined, options);
+    return this.request<T>(
+      'GET',
+      `/relay/delivery/${encodeURIComponent(reference)}`,
+      undefined,
+      options,
+    );
   }
 
   /**
@@ -68,12 +81,12 @@ export class Deliveries extends BaseResource {
   async cancel(
     reference: string,
     payload: CancelRelayDeliveryPayload,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<CancelRelayDeliveryResponse> {
     return this.httpPost<CancelRelayDeliveryResponse>(
       `/relay/delivery/${encodeURIComponent(reference)}/cancel`,
       payload,
-      options
+      options,
     );
   }
 }

@@ -35,7 +35,7 @@ export class ChowdeckAPIError extends ChowdeckError {
     message: string,
     statusCode: number,
     responseData: unknown,
-    requestDetails?: { url: string; method: string }
+    requestDetails?: { url: string; method: string },
   ) {
     // Try to extract a specific error message from the response payload
     let computedMessage = message;
@@ -47,7 +47,9 @@ export class ChowdeckAPIError extends ChowdeckError {
       }
     }
 
-    super(computedMessage || `Chowdeck API returned a ${statusCode} status code.`);
+    super(
+      computedMessage || `Chowdeck API returned a ${statusCode} status code.`,
+    );
     this.name = 'ChowdeckAPIError';
     this.statusCode = statusCode;
     this.responseData = responseData;

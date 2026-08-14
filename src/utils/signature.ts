@@ -11,7 +11,7 @@ import crypto from 'node:crypto';
 export function verifySignature(
   rawBody: string | Buffer,
   signature: string,
-  secret: string
+  secret: string,
 ): boolean {
   if (!rawBody || !signature || !secret) {
     return false;
@@ -23,7 +23,8 @@ export function verifySignature(
     cleanSignature = signature.substring(7);
   }
 
-  const payload = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
+  const payload =
+    typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
 
   const computedSignature = crypto
     .createHmac('sha256', secret)

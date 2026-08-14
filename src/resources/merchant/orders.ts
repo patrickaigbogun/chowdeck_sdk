@@ -1,14 +1,14 @@
-import { BaseResource } from '../base.js';
 import type {
+  AcceptOrderResponse,
+  GetOrderResponse,
   ListOrdersQueryParams,
   ListOrdersResponse,
-  GetOrderResponse,
-  AcceptOrderResponse,
-  RejectOrderResponse,
   MarkOrderReadyResponse,
+  RejectOrderResponse,
   SubmitOrderSubstitutionPayload,
   SubmitOrderSubstitutionResponse,
 } from '../../types/index.js';
+import { BaseResource } from '../base.js';
 
 export class MerchantOrdersResource extends BaseResource {
   /**
@@ -17,11 +17,14 @@ export class MerchantOrdersResource extends BaseResource {
    */
   async list(
     merchantReference: string,
-    query?: ListOrdersQueryParams
+    query?: ListOrdersQueryParams,
   ): Promise<ListOrdersResponse> {
-    return this.httpGet<ListOrdersResponse>(`/merchant/${merchantReference}/orders`, {
-      query: query as Record<string, any>,
-    });
+    return this.httpGet<ListOrdersResponse>(
+      `/merchant/${merchantReference}/orders`,
+      {
+        query: query as Record<string, any>,
+      },
+    );
   }
 
   /**
@@ -30,9 +33,11 @@ export class MerchantOrdersResource extends BaseResource {
    */
   async get(
     merchantReference: string,
-    orderReference: string
+    orderReference: string,
   ): Promise<GetOrderResponse> {
-    return this.httpGet<GetOrderResponse>(`/merchant/${merchantReference}/order/${orderReference}`);
+    return this.httpGet<GetOrderResponse>(
+      `/merchant/${merchantReference}/order/${orderReference}`,
+    );
   }
 
   /**
@@ -41,9 +46,11 @@ export class MerchantOrdersResource extends BaseResource {
    */
   async accept(
     merchantReference: string,
-    orderReference: string
+    orderReference: string,
   ): Promise<AcceptOrderResponse> {
-    return this.httpPut<AcceptOrderResponse>(`/merchant/${merchantReference}/order/${orderReference}/accept`);
+    return this.httpPut<AcceptOrderResponse>(
+      `/merchant/${merchantReference}/order/${orderReference}/accept`,
+    );
   }
 
   /**
@@ -52,9 +59,11 @@ export class MerchantOrdersResource extends BaseResource {
    */
   async reject(
     merchantReference: string,
-    orderReference: string
+    orderReference: string,
   ): Promise<RejectOrderResponse> {
-    return this.httpPut<RejectOrderResponse>(`/merchant/${merchantReference}/order/${orderReference}/reject`);
+    return this.httpPut<RejectOrderResponse>(
+      `/merchant/${merchantReference}/order/${orderReference}/reject`,
+    );
   }
 
   /**
@@ -63,9 +72,11 @@ export class MerchantOrdersResource extends BaseResource {
    */
   async markReady(
     merchantReference: string,
-    orderReference: string
+    orderReference: string,
   ): Promise<MarkOrderReadyResponse> {
-    return this.httpPut<MarkOrderReadyResponse>(`/merchant/${merchantReference}/order/${orderReference}/ready`);
+    return this.httpPut<MarkOrderReadyResponse>(
+      `/merchant/${merchantReference}/order/${orderReference}/ready`,
+    );
   }
 
   /**
@@ -75,11 +86,11 @@ export class MerchantOrdersResource extends BaseResource {
   async substitute(
     merchantReference: string,
     orderReference: string,
-    payload: SubmitOrderSubstitutionPayload
+    payload: SubmitOrderSubstitutionPayload,
   ): Promise<SubmitOrderSubstitutionResponse> {
     return this.httpPost<SubmitOrderSubstitutionResponse>(
       `/merchant/${merchantReference}/order/${orderReference}/substitution`,
-      payload
+      payload,
     );
   }
 }

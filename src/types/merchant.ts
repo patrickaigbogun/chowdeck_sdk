@@ -480,7 +480,16 @@ export interface OrderTimelineEntry {
 export interface Order {
   id: number;
   reference: string;
-  status: 'received' | 'accepted' | 'preparing' | 'awaiting_pickup' | 'picked' | 'arrived' | 'completed' | 'rejected' | string;
+  status:
+    | 'received'
+    | 'accepted'
+    | 'preparing'
+    | 'awaiting_pickup'
+    | 'picked'
+    | 'arrived'
+    | 'completed'
+    | 'rejected'
+    | string;
   summary: string;
   total_price: number;
   delivery_price: number;

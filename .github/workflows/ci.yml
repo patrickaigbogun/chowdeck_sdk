@@ -1,4 +1,4 @@
-name: CI Verification
+name: "[1/3] CI Verification"
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(bun -p "require('./package.json').version")
           echo "Checking version: $VERSION"
           if [[ "$VERSION" == *.0.0 ]]; then
             echo "Major version release ($VERSION) detected. Dokugen failure will fail the build."
