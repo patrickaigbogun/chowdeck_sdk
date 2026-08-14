@@ -81,6 +81,14 @@ async function main() {
     console.log("🔒 Syncing bun.lock lockfile...");
     execSync("bun install", { stdio: "inherit" });
 
+    // Generate documentation locally using Dokugen
+    console.log("📝 Generating documentation and changelogs with Dokugen...");
+    try {
+      execSync("bun x dokugen update && bun x dokugen changelog", { stdio: "inherit" });
+    } catch (e) {
+      console.warn("⚠️ Warning: Dokugen failed locally, proceeding anyway...");
+    }
+
     const releaseBranch = `release/${nextVersion}`;
 
     console.log(`\n🌿 Preparing release branch: ${releaseBranch}...`);
@@ -91,9 +99,9 @@ async function main() {
 
     execSync(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
 
-    console.log(`\n💾 Committing version bump: ${nextVersion}...`);
-    // 5. Commit package.json and bun.lock
-    execSync("git add package.json bun.lock", { stdio: "inherit" });
+    console.log(`\n💾 Committing version bump and documentation: ${nextVersion}...`);
+    // 5. Commit package.json, bun.lock, and documentation changes
+    execSync("git add package.json bun.lock README.md CHANGELOG.md", { stdio: "inherit" });
     execSync(`git commit -m "chore(release): ${nextVersion}"`, { stdio: "inherit" });
 
     console.log(`📤 Pushing branch ${releaseBranch} to origin...`);

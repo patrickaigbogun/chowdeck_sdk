@@ -55,12 +55,7 @@ jobs:
         env:
           DOKUGEN_API_KEY: ${{ secrets.DOKUGEN_API_KEY }}
 
-      - name: Commit Dokugen Updates back to PR Branch
-        if: github.event_name == 'pull_request'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "docs: update documentation and changelogs [skip ci]"
-          file_pattern: 'README.md CHANGELOG.md'
+
 
       - name: Verify Docs Site Build
         run: |
