@@ -12,7 +12,7 @@ This page provides complete integration templates for common business scenarios.
 A complete end-to-end flow for quoting, booking, and tracking a package delivery.
 
 ```typescript
-import { chowdeck, ChowdeckAPIError } from 'chwdck';
+import { chowdeck, ChowdeckAPIError } from '@chwdck/sdk';
 
 const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
 
@@ -73,7 +73,7 @@ await runDeliveryWorkflow();
 This workflow illustrates how to securely handle incoming Chowdeck order webhooks, verify signatures, accept the order, suggest item substitutions, and mark it ready.
 
 ```typescript
-import { chowdeck, verifySignature, ChowdeckAPIError } from 'chwdck';
+import { chowdeck, verifySignature, ChowdeckAPIError } from '@chwdck/sdk';
 import express from 'express'; // Example express web server
 
 const app = express();

@@ -15,13 +15,13 @@ A type-safe, fluent SDK for integrating the **Chowdeck Merchant** and **Chowdeck
 ## Installation
 
 ```bash
-bun add chwdck
+bun add @chwdck/sdk
 # or
-npm install chwdck
+npm install @chwdck/sdk
 # or
-yarn add chwdck
+yarn add @chwdck/sdk
 # or
-pnpm add chwdck
+pnpm add @chwdck/sdk
 ```
 
 ---
@@ -31,7 +31,7 @@ pnpm add chwdck
 Initialize the client with your secret API Key from the Chowdeck Developer Dashboard.
 
 ```typescript
-import { chowdeck } from 'chwdck';
+import { chowdeck } from '@chwdck/sdk';
 
 const client = chowdeck({
   apiKey: 'YOUR_CHOWDECK_API_KEY',
@@ -220,7 +220,7 @@ const depositBank = await client.r.wallet.getAccount();
 Verify that webhook events (e.g. `ORDER_CREATED`) originate securely from Chowdeck using timing-safe buffer comparisons:
 
 ```typescript
-import { verifySignature } from 'chwdck';
+import { verifySignature } from '@chwdck/sdk';
 
 const rawPayload = '{"event":"order.created",...}'; // Raw string body from request
 const signature = request.headers['x-chowdeck-signature'];
@@ -237,7 +237,7 @@ if (!isValid) {
 Chowdeck APIs manage currency in Kobo minor units. Convert safely to avoid floating-point errors (e.g. `19.99 * 100` resulting in `1998.9999999999998`):
 
 ```typescript
-import { nairaToKobo, koboToNaira } from 'chwdck';
+import { nairaToKobo, koboToNaira } from '@chwdck/sdk';
 
 nairaToKobo(19.99); // Returns 1999 (integer)
 koboToNaira(15000); // Returns 150.00 (float)
@@ -250,7 +250,7 @@ koboToNaira(15000); // Returns 150.00 (float)
 Standardized SDK exceptions wrap HTTP failures transparently:
 
 ```typescript
-import { ChowdeckAPIError, ChowdeckConnectionError } from 'chwdck';
+import { ChowdeckAPIError, ChowdeckConnectionError } from '@chwdck/sdk';
 
 try {
   await client.m.orders.accept('merchant_ref', 'invalid_order_ref');

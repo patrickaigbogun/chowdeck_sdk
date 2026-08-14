@@ -12,42 +12,75 @@ async function main() {
       process.exit(1);
     }
 
-    // 2. Prompt the user to choose a bump type
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: true
-    });
-
-    const ask = (query: string): Promise<string> =>
-      new Promise((resolve) => rl.question(query, resolve));
-
+    // 2. Parse command line flags or prompt for bump type
     let bumpType = "";
-    while (true) {
-      const answer = await ask("Choose a bump type (patch, minor, major): ");
-      const normalized = answer.trim().toLowerCase();
-      if (["patch", "minor", "major"].includes(normalized)) {
-        bumpType = normalized;
-        break;
-      }
-      console.log("⚠️ Invalid choice. Please enter 'patch', 'minor', or 'major'.");
+    const args = process.argv.slice(2);
+    
+    if (args.includes("-m") || args.includes("--major")) {
+      bumpType = "major";
+    } else if (args.includes("-s") || args.includes("--minor")) {
+      bumpType = "minor";
+    } else if (args.includes("-p") || args.includes("--patch")) {
+      bumpType = "patch";
     }
-    rl.close();
+
+    if (!bumpType) {
+      const rl = createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: true
+      });
+
+      const ask = (query: string): Promise<string> =>
+        new Promise((resolve) => rl.question(query, resolve));
+
+      while (true) {
+        const answer = await ask("Choose a bump type (patch, minor, major): ");
+        const normalized = answer.trim().toLowerCase();
+        if (["patch", "minor", "major"].includes(normalized)) {
+          bumpType = normalized;
+          break;
+        }
+        console.log("⚠️ Invalid choice. Please enter 'patch', 'minor', or 'major'.");
+      }
+      rl.close();
+    }
 
     // Re-verify current branch is master (or main) before releasing
     const currentBranch = execSync("git branch --show-current", { encoding: "utf8" }).trim();
     
-    console.log(`\n🚀 Bumping version locally using npm version ${bumpType}...`);
-    // Bump version locally in package.json (no commit or tag created yet)
-    execSync(`npm version ${bumpType} --no-git-tag-version`, { stdio: "inherit" });
+    // 3. Read package.json and bump version programmatically
+    const pkgPath = path.resolve(process.cwd(), "package.json");
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+    const currentVersion = pkg.version;
+    const versionParts = currentVersion.split(".").map(Number);
+    
+    if (versionParts.length !== 3 || versionParts.some(isNaN)) {
+      console.error(`❌ Error: Invalid version format in package.json: "${currentVersion}"`);
+      process.exit(1);
+    }
+
+    if (bumpType === "major") {
+      versionParts[0]++;
+      versionParts[1] = 0;
+      versionParts[2] = 0;
+    } else if (bumpType === "minor") {
+      versionParts[1]++;
+      versionParts[2] = 0;
+    } else if (bumpType === "patch") {
+      versionParts[2]++;
+    }
+
+    const nextVersion = `v${versionParts.join(".")}`;
+    pkg.version = versionParts.join(".");
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+
+    console.log(`\n🚀 Bumping version locally to ${nextVersion}...`);
 
     // Sync lockfile
     console.log("🔒 Syncing bun.lock lockfile...");
     execSync("bun install", { stdio: "inherit" });
 
-    const pkgPath = path.resolve(process.cwd(), "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-    const nextVersion = `v${pkg.version}`;
     const releaseBranch = `release/${nextVersion}`;
 
     console.log(`\n🌿 Preparing release branch: ${releaseBranch}...`);

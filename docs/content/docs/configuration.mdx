@@ -13,16 +13,16 @@ Install the package via your preferred package manager. Since the SDK is built w
 
 ```bash
 # Using Bun (Recommended)
-bun add chwdck
+bun add @chwdck/sdk
 
 # Using npm
-npm install chwdck
+npm install @chwdck/sdk
 
 # Using Yarn
-yarn add chwdck
+yarn add @chwdck/sdk
 
 # Using pnpm
-pnpm add chwdck
+pnpm add @chwdck/sdk
 ```
 
 ### Requirements
@@ -36,7 +36,7 @@ pnpm add chwdck
 Import and instantiate the `chowdeck` client. The SDK uses a camelCase factory function for construction.
 
 ```typescript
-import { chowdeck } from 'chwdck';
+import { chowdeck } from '@chwdck/sdk';
 
 const client = chowdeck({
   apiKey: process.env.CHOWDECK_API_KEY!,
@@ -57,7 +57,7 @@ The factory function accepts a configuration object with the following propertie
 To test your integration safely without creating live deliveries or orders, point the client to the sandbox API:
 
 ```typescript
-import { chowdeck } from 'chwdck';
+import { chowdeck } from '@chwdck/sdk';
 
 const client = chowdeck({
   apiKey: 'YOUR_SANDBOX_API_KEY',
