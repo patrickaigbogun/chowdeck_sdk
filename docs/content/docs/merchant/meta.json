@@ -1,0 +1,9 @@
+{
+  "title": "Merchant",
+  "pages": [
+    "orders",
+    "menus",
+    "discounts",
+    "profile-wallet"
+  ]
+}
