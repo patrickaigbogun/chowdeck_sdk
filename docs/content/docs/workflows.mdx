@@ -1,141 +1,167 @@
 ---
-title: Real-World Workflows
-description: End-to-end integration flows combining multiple SDK methods and utilities.
+title: Examples
+description: End-to-end integration workflows demonstrating how the SDK combines 50+ REST endpoints into cohesive business operations.
 ---
 
-This page provides complete integration templates for common business scenarios.
+## Overview
+
+Rather than presenting isolated API calls in a vacuum, this chapter demonstrates how the Chowdeck TypeScript SDK mirrors actual production workflows.
+
+The value of the SDK is not just that it provides access to over 50 REST endpoints—it is that it combines these endpoints into clean, predictable, and maintainable business flows: **Merchant Onboarding → Catalog Management → Order Processing → Webhook Verification → Courier Logistics**.
 
 ---
 
-## 1. Relay Package Delivery Flow
+## SDK vs. Raw REST API
 
-A complete end-to-end flow for quoting, booking, and tracking a package delivery.
+To see the difference immediately, consider what it takes to accept an incoming merchant order:
 
+### Using the Raw REST API
 ```typescript
-import { chowdeck, ChowdeckAPIError } from '@chwdck/sdk';
-
-const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
-
-async function runDeliveryWorkflow() {
-  try {
-    // Step 1: Calculate the delivery fee quote
-    console.log('1. Fetching delivery fee quote...');
-    const quote = await client.r.deliveries.quote({
-      pickup: {
-        address: '12 Herbert Macaulay Way, Yaba, Lagos',
-        latitude: 6.5022,
-        longitude: 3.3768,
-        contact: { name: 'Sender', phone: '+2348000000001' }
-      },
-      dropoff: {
-        address: '90 Allen Avenue, Ikeja, Lagos',
-        latitude: 6.5986,
-        longitude: 3.3542,
-        contact: { name: 'Recipient', phone: '+2348000000002' }
-      }
-    });
-    
-    const feeId = quote.data.fee_id;
-    console.log(`✅ Quote success. Cost: ${quote.data.amount} Kobo. Fee ID: ${feeId}`);
-
-    // Step 2: Create the delivery booking using the Quote Fee ID
-    console.log('\n2. Booking delivery dispatch...');
-    const delivery = await client.r.deliveries.create({
-      fee_id: feeId,
-      description: 'Customer order parcel',
-      notes: 'Ring bell on arrival.'
-    });
-    
-    const deliveryRef = delivery.data.reference;
-    console.log(`✅ Delivery booked successfully. Reference: ${deliveryRef}`);
-
-    // Step 3: Check delivery tracking status
-    console.log('\n3. Tracking delivery status...');
-    const status = await client.r.deliveries.get(deliveryRef);
-    console.log(`✅ Current status: ${status.data.status}`); // e.g. "searching_for_rider"
-
-  } catch (error) {
-    if (error instanceof ChowdeckAPIError) {
-      console.error(`❌ Workflow failed: ${error.message} (${error.statusCode})`);
-    } else {
-      console.error('❌ Unexpected error:', error);
-    }
+//  Raw REST API requires manual URL concatenation, auth headers, error parsing, and JSON serialization
+const response = await fetch(
+  `https://api.chowdeck.com/merchant/${merchantRef}/orders/${orderRef}/accept`,
+  {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.CHOWDECK_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ notes: 'Preparing order in kitchen.' }),
   }
+);
+
+if (!response.ok) {
+  const errPayload = await response.json().catch(() => ({}));
+  throw new Error(`HTTP ${response.status}: ${errPayload.message || 'Unknown error'}`);
 }
 
-await runDeliveryWorkflow();
+const data = await response.json();
+```
+
+### Using the Chowdeck SDK
+```typescript
+//  Clean, fluent, fully typed with automatic parameter validation and standardized error handling
+const data = await client.m.orders.accept(merchantRef, orderRef, {
+  body: { notes: 'Preparing order in kitchen.' },
+});
 ```
 
 ---
 
-## 2. Merchant Order Fulfiment Webhook Flow
+## The Complete End-to-End Workflow
 
-This workflow illustrates how to securely handle incoming Chowdeck order webhooks, verify signatures, accept the order, suggest item substitutions, and mark it ready.
+The following comprehensive example walks through a complete end-to-end merchant and logistics cycle.
 
 ```typescript
-import { chowdeck, verifySignature, ChowdeckAPIError } from '@chwdck/sdk';
-import express from 'express'; // Example express web server
+import {
+  chowdeck,
+  ChowdeckAPIError,
+  koboToNaira,
+  nairaToKobo,
+  verifySignature,
+} from '@chwdck/sdk';
 
-const app = express();
 const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
 const webhookSecret = process.env.CHOWDECK_WEBHOOK_SECRET!;
-const merchantRef = process.env.CHOWDECK_MERCHANT_REF!;
 
-// Make sure to parse the raw body as a string to verify the HMAC signature correctly
-app.post('/webhooks/chowdeck', express.text({ type: 'application/json' }), async (req, res) => {
-  const signature = req.headers['x-chowdeck-signature'] as string;
-  const rawBody = req.body;
+async function runPlatformFlow() {
+  try {
+    console.log('=== Step 1: Verify Merchant Profile & Wallet ===');
+    const merchantRef = 'mer_lagos_grill_01';
+    
+    const merchant = await client.m.get(merchantRef);
+    console.log(`Merchant Name: ${merchant.data.name}, Status: ${merchant.data.is_open ? 'Open' : 'Closed'}`);
 
-  // 1. Verify Webhook Authenticity to protect against timing attacks
-  const isValid = verifySignature(rawBody, signature, webhookSecret);
-  if (!isValid) {
-    console.error('❌ Webhook Signature verification failed');
-    return res.status(401).send('Unauthorized signature');
-  }
+    const wallet = await client.m.wallet.getBalance(merchantRef);
+    console.log(`Available Wallet Balance: ₦${koboToNaira(wallet.data.balance)}`);
 
-  // Parse payload once verified
-  const payload = JSON.parse(rawBody);
-  console.log(`Received Webhook: ${payload.event}`);
+    console.log('\n=== Step 2: Create a Promotional Discount ===');
+    // Using currency helper: ₦500 off becomes 50000 Kobo
+    const discount = await client.m.discounts.create(merchantRef, {
+      title: 'Weekend Flash Sale',
+      discount_type: 'flat',
+      value: nairaToKobo(500),
+      minimum_spend: nairaToKobo(3000),
+      usage_limit: 100,
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 86400000 * 2).toISOString(),
+    });
+    console.log(` Created discount: ${discount.data.title}`);
 
-  // 2. Handle order.created event
-  if (payload.event === 'order.created') {
-    const orderRef = payload.data.reference;
-    console.log(`Processing incoming Order: ${orderRef}`);
+    console.log('\n=== Step 3: Handle Incoming Order Webhook ===');
+    const simulatedWebhookBody = JSON.stringify({
+      event: 'order.created',
+      data: {
+        merchant_reference: merchantRef,
+        order_reference: 'ord_987654321',
+        total_amount: 850000, // 8,500 NGN in Kobo
+      },
+    });
+    const simulatedSignature = 'simulated_hmac_sha256_signature';
 
-    try {
-      // Step A: Accept the order immediately to transition it to "preparing"
-      await client.m.orders.accept(merchantRef, orderRef);
-      console.log(`✅ Order ${orderRef} accepted and status set to preparing.`);
+    // Verify webhook authenticity securely using timing-safe buffer equality
+    const isWebhookValid = verifySignature(
+      simulatedWebhookBody,
+      simulatedSignature,
+      webhookSecret
+    );
 
-      // Optional Step B: Propose an item substitution if an item is out of stock
-      const outOfStock = false; // Add your own stock checker logic
-      if (outOfStock) {
-        console.log(`Out of stock item detected. Proposing substitution...`);
-        await client.m.orders.substitute(merchantRef, orderRef, {
-          items: [
-            {
-              original_item_id: 'unavailable-item-uuid',
-              substituted_item_id: 'substitute-item-uuid',
-              quantity: 1
-            }
-          ]
-        });
-        console.log(`✅ Substitution proposal sent to customer.`);
-      }
+    console.log(`Webhook Signature Authenticated: ${isWebhookValid}`);
 
-      // Step C: After cooking/packaging, mark the order as ready for pickup
-      await client.m.orders.markReady(merchantRef, orderRef);
-      console.log(`✅ Order ${orderRef} marked as ready. Dispatch rider alerted.`);
+    console.log('\n=== Step 4: Accept and Process Order ===');
+    const orderRef = 'ord_987654321';
+    const acceptedOrder = await client.m.orders.accept(merchantRef, orderRef);
+    console.log(` Order ${orderRef} accepted. Status: ${acceptedOrder.status}`);
 
-    } catch (error) {
-      if (error instanceof ChowdeckAPIError) {
-        console.error(`❌ Failed to fulfill order ${orderRef}: ${error.message}`);
-      }
+    // Mark food as prepared and ready for pickup
+    await client.m.orders.ready(merchantRef, orderRef);
+    console.log(` Order ${orderRef} marked ready for pickup.`);
+
+    console.log('\n=== Step 5: Dispatch Relay Courier ===');
+    // 1. Fetch real-time delivery fee quote
+    const quote = await client.r.deliveries.quote({
+      pickup: {
+        address: '14 Admiralty Way, Lekki Phase 1, Lagos',
+        latitude: 6.4474,
+        longitude: 3.4723,
+        contact: { name: 'Lagos Grill Kitchen', phone: '+2348011112222' },
+      },
+      dropoff: {
+        address: '25 Fola Osibo St, Lekki Phase 1, Lagos',
+        latitude: 6.4512,
+        longitude: 3.4689,
+        contact: { name: 'Jane Doe', phone: '+2348033334444' },
+      },
+    });
+
+    const feeId = quote.data.fee_id;
+    console.log(` Quote received: ₦${koboToNaira(quote.data.amount)} (Fee ID: ${feeId})`);
+
+    // 2. Book the dispatch
+    const delivery = await client.r.deliveries.create({
+      fee_id: feeId,
+      description: `Delivery for Order #${orderRef}`,
+      notes: 'Fragile meal package. Please handle with care.',
+    });
+
+    const deliveryRef = delivery.data.reference;
+    console.log(` Courier booked successfully. Delivery Reference: ${deliveryRef}`);
+
+    console.log('\n=== Step 6: Track Delivery Status ===');
+    const tracking = await client.r.deliveries.get(deliveryRef);
+    console.log(`Current Delivery Status: ${tracking.data.status}`);
+
+    console.log('\n Entire merchant, order, and logistics flow completed seamlessly!');
+  } catch (error) {
+    if (error instanceof ChowdeckAPIError) {
+      console.error(` API Error [${error.statusCode}]: ${error.message}`);
+      console.error('Response body:', error.responseData);
+    } else {
+      console.error(' Unexpected failure:', error);
     }
   }
+}
 
-  res.status(200).send('Webhook processed');
-});
-
-app.listen(3000, () => console.log('Webhook server running on port 3000'));
+// Execute the workflow
+await runPlatformFlow();
 ```

@@ -1,43 +1,71 @@
 ---
-title: Introduction & Philosophy
-description: The core design choices, architecture, and principles behind the Chwdck TypeScript SDK.
+title: Intro
+description: The core design framework and architectural principles behind the Chowdeck TypeScript SDK.
 ---
 
-Welcome to the **Chwdck TypeScript SDK** documentation. This SDK provides developers with an idiomatic, fluent, and 100% type-safe interface to interact with Chowdeck's Merchant and Relay APIs.
+## Introduction
 
----
+Designing an API integration is about more than simply making requests and receiving responses. A good API should reduce the amount of effort required from the developer while providing a consistent and predictable experience.
 
-## The Philosophy of the SDK
-
-Designing an API integration client requires making careful, deliberate trade-offs. The Chwdck SDK was built around three core architectural tenets:
-
-### 1. Transparent by Default
-We believe an SDK should remove the plumbing of HTTP integration (headers, JSON parsing, URL building) without hiding the HTTP layer itself. If a request fails, the SDK does not wrap it in obscure, unhelpful abstractions. Instead:
-- It throws a structured `ChowdeckAPIError` that exposes the raw HTTP status code, request URL/method, and parsed response body.
-- Developers see exactly what the server returned, making debugging fast and intuitive.
-
-### 2. Fluent & Domain-Aligned Chaining
-The interface mirrors how developers actually interact with Chowdeck. We use namespace chaining to divide responsibilities:
-- `client.m` (or `client.merchant`) for all Merchant operations.
-- `client.r` (or `client.relay`) for all logistics and delivery operations.
-- Fluent chaining leads to highly readable code: `client.m.orders.accept(merchantRef, orderRef)`.
-
-### 3. Lightweight & Dual-Module
-The SDK has **zero runtime dependencies** besides Node's native APIs. It targets Node.js (>=18.0.0) and uses native `fetch` under the hood. It compiles to both ES Modules (`.js`) and CommonJS (`.cjs`) with full TypeScript declaration maps (`.d.ts` / `.d.cts`) using NodeNext module resolution.
+This design framework is built around that idea. It focuses on making the API intuitive enough that developers can understand how it works without having to constantly refer to extensive documentation or keep additional context in their heads.
 
 ---
 
-## The 8 Dimensions of Our SDK Design
+### Consistency
 
-To ensure the SDK meets the highest engineering standards, it was designed across 8 critical dimensions:
+The first principle is consistency. The API should follow predictable conventions across its different parts so that once a developer understands one part of the system, they can reasonably understand the rest.
 
-| Dimension | Our Design Decisions |
-| :--- | :--- |
-| **1. Product / UX** | **Simple quickstart**: Get a client running in 2 lines. Namespace partitioning (`.m` vs `.r`) keeps the surface area logical. |
-| **2. Public API** | **Fluent namespaces**: Method signatures use descriptive names, and type maps provide 100% compile-time autocomplete. |
-| **3. Language Idioms** | **TS/JS Best Practices**: Uses lowercase camelCase factories (`import { chowdeck }`), ESM compatibility, and explicit `.js` import resolution. |
-| **4. Network Layer** | **Native engine**: Wraps Node's native `fetch` directly. It supports headers customization and custom query building dynamically. |
-| **5. Failure Design** | **Transparent exceptions**: Differentiates clearly between **connection failures** (`ChowdeckConnectionError`) and **API response failures** (`ChowdeckAPIError`). |
-| **6. Security** | **Timing-safe validation**: Implements `verifySignature` using Node's `crypto.timingSafeEqual` to safeguard webhook endpoints. |
-| **7. Ecosystem** | **Zero bloating**: Ships zero production dependencies. Bundled via `tsup` for dual ESM/CJS compatibility. |
-| **8. Lifecycle** | **Automated generation**: Type definitions are compiled directly from scraped OpenAPI JSON definitions to keep them up to date with the API. |
+Too much context is expensive. Developers should not have to learn a completely different pattern every time they interact with another endpoint. The same principles, structures, and conventions apply throughout the SDK.
+
+---
+
+### The Code Should Mirror the API
+
+The next principle is that the code should follow the natural structure of the API.
+
+Ideally, the way a developer thinks about performing an action should correspond closely to the way that action is represented in the code. The API should feel like a bridge between the developer's mental model and the actual system.
+
+For example, if an API endpoint is:
+
+```http
+POST /merchant/{merchant_reference}/orders/{order_reference}/accept
+```
+
+then the action being performed is clearly accepting an order on behalf of a merchant. In the SDK, the code mirrors that exact domain hierarchy:
+
+```typescript
+await client.m.orders.accept(merchantRef, orderRef);
+```
+
+The same idea applies to how variables, functions, initialisers, and synchronisers are organised. Their structure follows the natural flow of the operation rather than introducing unnecessary abstractions.
+
+The goal is simple: when a developer wants to do something with the API, the code should make that action immediately obvious.
+
+> **Make the API easy to use and make common actions easy to understand.**
+
+---
+
+### Predictable Error Handling
+
+After the normal control flow comes error handling.
+
+Things will inevitably go wrong—invalid requests, failed operations, business-rule violations, and other unexpected situations. The API should therefore return errors in a consistent and predictable format.
+
+Errors should not introduce unnecessary complexity. A developer should be able to look at an error response and immediately understand what went wrong and, ideally, what needs to be fixed.
+
+Consistent errors also make debugging easier. When every part of the API handles failures according to the same principles, developers do not have to learn a different error-handling system for every endpoint.
+
+> **If something goes wrong, the API should make the problem clear rather than creating another problem for the developer to solve.**
+
+---
+
+## Architectural Mapping
+
+To keep the surface area clean and intuitive, the SDK partitions the Chowdeck platform into two primary namespaces:
+
+| Namespace | Alias | Responsibility | Example |
+| :--- | :--- | :--- | :--- |
+| **Merchant** | `client.m` / `client.merchant` | Vendor profile, menus, discounts, order fulfillment, and reviews. | `client.m.orders.list(merchantRef)` |
+| **Relay** | `client.r` / `client.relay` | Logistics, package delivery quotes, dispatch, redelivery, and virtual accounts. | `client.r.deliveries.quote(payload)` |
+
+These principles form the foundation of the SDK. The objective is not to add complexity for its own sake, but to make the entire experience of working with Chowdeck simpler, more consistent, and more predictable.

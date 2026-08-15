@@ -1,6 +1,9 @@
 {
-  "orders": "Orders",
-  "menus": "Menus & Items",
-  "discounts": "Discounts & Promotions",
-  "profile-wallet": "Profile & Wallet"
+  "title": "Merchant",
+  "pages": [
+    "orders",
+    "menus",
+    "discounts",
+    "profile-wallet"
+  ]
 }

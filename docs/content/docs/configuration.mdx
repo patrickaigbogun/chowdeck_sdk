@@ -1,15 +1,11 @@
 ---
-title: Configuration & Installation
-description: Get up and running with the Chwdck TypeScript SDK.
----
-
-This guide walks you through installing the SDK and configuring your first API client.
-
+title: Getting Started
+description: Step-by-step installation, client initialization, configuration options, and method invocation patterns.
 ---
 
 ## Installation
 
-Install the package via your preferred package manager. Since the SDK is built with native ESM and NodeNext module resolution, it works seamlessly with Bun, Node, and browser-based bundlers.
+Install the package into your project using your package manager of choice. The SDK ships with native ES Modules and CommonJS bundles with full TypeScript definitions out of the box.
 
 ```bash
 # Using Bun (Recommended)
@@ -25,15 +21,15 @@ yarn add @chwdck/sdk
 pnpm add @chwdck/sdk
 ```
 
-### Requirements
-- **Runtime**: Node.js (>=18.0.0) or Bun (>=1.0.0).
-- **TypeScript**: Version >=5.0.0 (if using TypeScript).
+### Runtime Requirements
+* **Runtime**: Node.js (`>=18.0.0`) or Bun (`>=1.0.0`).
+* **TypeScript**: Version `>=5.0.0` (for optimal type inference with `NodeNext` resolution).
 
 ---
 
-## Initializing the Client
+## Client Initialization
 
-Import and instantiate the `chowdeck` client. The SDK uses a camelCase factory function for construction.
+To get started, import the `chowdeck` factory function and initialize the client with your secret API key obtained from the Chowdeck Developer Dashboard.
 
 ```typescript
 import { chowdeck } from '@chwdck/sdk';
@@ -45,22 +41,89 @@ const client = chowdeck({
 
 ### Configuration Options
 
-The factory function accepts a configuration object with the following properties:
+The `chowdeck` factory function accepts a configuration object with the following settings:
 
 | Option | Type | Required | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `apiKey` | `string` | **Yes** | — | Your secret API key. Can be obtained from the Developer settings on the Chowdeck Dashboard. |
-| `baseUrl` | `string` | No | `https://api.chowdeck.com` | Custom endpoint URL override. Useful for targeting the sandbox testing environment. |
+| `apiKey` | `string` | **Yes** | — | Your secret API key from the Chowdeck Developer Dashboard. |
+| `baseUrl` | `string` | No | `https://api.chowdeck.com` | Custom API base URL. Use `https://api-sandbox.chowdeck.com` for sandbox testing. |
 
-### Testing in Sandbox
+#### Sandbox Environment Setup
 
-To test your integration safely without creating live deliveries or orders, point the client to the sandbox API:
+To test your integration in the sandbox environment without creating live orders or courier dispatches, override `baseUrl`:
 
 ```typescript
 import { chowdeck } from '@chwdck/sdk';
 
 const client = chowdeck({
-  apiKey: 'YOUR_SANDBOX_API_KEY',
+  apiKey: process.env.CHOWDECK_SANDBOX_API_KEY!,
   baseUrl: 'https://api-sandbox.chowdeck.com',
 });
+```
+
+---
+
+## Method Conventions & Namespaces
+
+Following our design principle where **the code mirrors the API**, all operations are grouped into logical resource namespaces accessible directly from the initialized client:
+
+### 1. Merchant Operations (`client.m` or `client.merchant`)
+
+The Merchant namespace covers everything related to store operations, menus, customer orders, discounts, and vendor wallet balances:
+
+```typescript
+// Fetch merchant vendor details
+const profile = await client.m.get('merchant_ref_123');
+
+// Access nested resources directly
+const menus = await client.m.menus.list('merchant_ref_123');
+const orders = await client.m.orders.list('merchant_ref_123');
+const discounts = await client.m.discounts.list('merchant_ref_123');
+const wallet = await client.m.wallet.getBalance('merchant_ref_123');
+```
+
+### 2. Relay Operations (`client.r` or `client.relay`)
+
+The Relay namespace covers standalone parcel logistics, delivery quotes, live tracking, and redeliveries:
+
+```typescript
+// Get a real-time delivery quote
+const quote = await client.r.deliveries.quote({
+  pickup: {
+    address: '12 Herbert Macaulay Way, Yaba, Lagos',
+    latitude: 6.5022,
+    longitude: 3.3768,
+    contact: { name: 'Sender', phone: '+2348000000001' },
+  },
+  dropoff: {
+    address: '90 Allen Avenue, Ikeja, Lagos',
+    latitude: 6.5986,
+    longitude: 3.3542,
+    contact: { name: 'Recipient', phone: '+2348000000002' },
+  },
+});
+
+// Book the delivery dispatch using the quote's fee ID
+const delivery = await client.r.deliveries.create({
+  fee_id: quote.data.fee_id,
+  description: 'Documents parcel',
+});
+```
+
+---
+
+## Per-Request Options
+
+Every method in the SDK optionally accepts a `RequestOptions` object as its trailing argument, allowing you to attach custom request headers, query parameters, or specific context overrides per request:
+
+```typescript
+import type { RequestOptions } from '@chwdck/sdk';
+
+const options: RequestOptions = {
+  headers: {
+    'X-Custom-Tracking-ID': 'trace_987654321',
+  },
+};
+
+const order = await client.m.orders.get('merchant_ref', 'order_ref', options);
 ```

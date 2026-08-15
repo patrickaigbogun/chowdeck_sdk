@@ -1,4 +1,7 @@
 {
-  "deliveries": "Deliveries & Quotes",
-  "redeliveries-wallet": "Redeliveries & Wallet"
+  "title": "Relay",
+  "pages": [
+    "deliveries",
+    "redeliveries-wallet"
+  ]
 }

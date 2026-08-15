@@ -1,79 +1,131 @@
 ---
-title: Error Handling
-description: How to intercept, parse, and recover from failures in the Chwdck SDK.
+title: Errors
+description: How the Chowdeck SDK formats, bubbles, and handles API and network exceptions with transparent error classes.
 ---
 
-The Chwdck SDK organizes failures into structured exceptions that separate API-level issues from network-level transport issues. 
+## Overview
 
-All custom errors inherit from the base class `ChowdeckError`.
+When integrating with live APIs, things will inevitably go wrong at some point—whether it's an invalid request payload, an unauthenticated call, a business-rule violation, or a temporary network drop.
 
----
+The goal of error handling in the Chowdeck SDK is simplicity: **we allow you to handle the error directly within your own code without wrapping failures in obscure or unnecessary abstractions.**
 
-## Error Classes
-
-### `ChowdeckAPIError`
-Thrown when the request successfully reaches the Chowdeck servers, but the server returns a non-2xx response status code.
-
-- **Properties**:
-  - `statusCode: number` - The HTTP response status code (e.g. `400`, `401`, `404`, `500`).
-  - `message: string` - The error description. The SDK automatically extracts this from the response body (looking for `message` or `error` properties). If missing, it falls back to a generic HTTP status description.
-  - `responseData: unknown` - The raw unparsed JSON/text payload returned by the server.
-  - `requestDetails: { url: string; method: string }` - Metadata about the request that triggered the failure.
+If an error comes from the Chowdeck API server or the underlying network runtime, the SDK exposes the exact context (status codes, response bodies, and request parameters) so you can immediately see what failed and fix it.
 
 ---
 
-### `ChowdeckConnectionError`
-Thrown when the request fails to reach the Chowdeck API servers (e.g. DNS resolution errors, socket timeouts, network loss).
+## The Error Hierarchy
 
-- **Properties**:
-  - `message: string` - A user-friendly error description.
-  - `originalError: Error` - The underlying native fetch error.
+All errors thrown by the SDK extend from the root `ChowdeckError` class.
 
----
+```
+       ChowdeckError (Base Error Class)
+             │
+             ├── ChowdeckAPIError (HTTP 4xx/5xx API Responses)
+             └── ChowdeckConnectionError (Network/Fetch Failures)
+```
 
-### `ChowdeckError`
-The base class for all SDK-specific errors. You can use it to catch any error thrown by the library.
-
----
-
-## Code Example
+### 1. `ChowdeckError`
+The base class for all SDK-specific errors. You can use this as a catch-all for any exception originating from the library.
 
 ```typescript
-import { chowdeck, ChowdeckAPIError, ChowdeckConnectionError } from '@chwdck/sdk';
-
-const client = chowdeck({ apiKey: 'YOUR_API_KEY' });
+import { ChowdeckError } from '@chwdck/sdk';
 
 try {
-  // Attempting to retrieve a non-existent delivery reference
-  await client.r.deliveries.get('non_existent_ref');
+  await client.m.orders.get('merchant_ref', 'order_ref');
 } catch (error) {
-  if (error instanceof ChowdeckAPIError) {
-    // Intercept API errors (4xx / 5xx)
-    console.error(`❌ API Error: ${error.message}`);
-    console.error(`- Status Code: ${error.statusCode}`);
-    console.error(`- Request Path: [${error.requestDetails?.method}] ${error.requestDetails?.url}`);
-    console.error(`- Server Details:`, JSON.stringify(error.responseData));
-    
-  } else if (error instanceof ChowdeckConnectionError) {
-    // Intercept network-level transport errors
-    console.error(`❌ Connection failed: ${error.message}`);
-    console.error(`- Root cause: ${error.originalError.message}`);
-    
-  } else {
-    // Other errors (e.g., programming mistakes, validation exceptions)
-    console.error(`❌ Unexpected error:`, error);
+  if (error instanceof ChowdeckError) {
+    console.error('An SDK error occurred:', error.message);
   }
 }
 ```
+
 ---
 
-## Common API Status Codes
+### 2. `ChowdeckAPIError`
+Thrown whenever the Chowdeck API returns a non-2xx HTTP status code (e.g. `400 Bad Request`, `401 Unauthorized`, `404 Not Found`, `422 Unprocessable Entity`, or `500 Internal Server Error`).
 
-| Code | Meaning | Common Reasons |
-| :--- | :--- | :--- |
-| **`400`** | Bad Request | Missing or invalid parameters, incorrect query formatting. |
-| **`401`** | Unauthorized | Missing API key, incorrect key, or invalid HMAC webhook signature. |
-| **`403`** | Forbidden | The API key lacks permission for the specific resource. |
-| **`404`** | Not Found | The requested resource (order, menu item, or delivery reference) does not exist. |
-| **`422`** | Unprocessable | Logic validation failed (e.g., quoting a delivery with invalid coordinates). |
-| **`500`** | Internal Error | An unexpected server error occurred on Chowdeck's side. |
+#### Properties
+* `statusCode: number` — The HTTP status code returned by the server (e.g. `404`).
+* `message: string` — The descriptive error message extracted from the server response.
+* `responseData: any` — The raw, parsed JSON response returned by the API.
+* `requestDetails: object` — Details of the outgoing HTTP request (`url`, `method`, `headers`, `body`).
+
+```typescript
+import { ChowdeckAPIError } from '@chwdck/sdk';
+
+try {
+  await client.m.orders.accept('invalid_merchant', 'invalid_order');
+} catch (error) {
+  if (error instanceof ChowdeckAPIError) {
+    console.error(`HTTP Status: ${error.statusCode}`);
+    console.error(`API Message: ${error.message}`);
+    console.error(`Failed URL:   ${error.requestDetails.method} ${error.requestDetails.url}`);
+    console.error(`Payload:      `, error.responseData);
+  }
+}
+```
+
+---
+
+### 3. `ChowdeckConnectionError`
+Thrown when the request fails before receiving an HTTP response from the server (e.g., DNS resolution failure, network disconnection, or socket timeout).
+
+#### Properties
+* `message: string` — Human-readable explanation of the connection failure.
+* `originalError: Error` — The underlying native `fetch` / `TypeError` thrown by the JavaScript runtime.
+* `requestDetails: object` — The request configuration that failed (`url`, `method`, `headers`, `body`).
+
+```typescript
+import { ChowdeckConnectionError } from '@chwdck/sdk';
+
+try {
+  await client.r.wallet.getBalance();
+} catch (error) {
+  if (error instanceof ChowdeckConnectionError) {
+    console.error('Network failure:', error.message);
+    console.error('Original runtime error:', error.originalError);
+  }
+}
+```
+
+---
+
+## Ideal Error Handling Pattern
+
+In real-world applications, combine these checks using standard TypeScript `instanceof` narrowing:
+
+```typescript
+import {
+  chowdeck,
+  ChowdeckAPIError,
+  ChowdeckConnectionError,
+  ChowdeckError,
+} from '@chwdck/sdk';
+
+const client = chowdeck({ apiKey: process.env.CHOWDECK_API_KEY! });
+
+async function safeAcceptOrder(merchantRef: string, orderRef: string) {
+  try {
+    const response = await client.m.orders.accept(merchantRef, orderRef);
+    console.log('Order accepted successfully:', response);
+    return response;
+  } catch (error) {
+    if (error instanceof ChowdeckAPIError) {
+      if (error.statusCode === 404) {
+        console.warn(`Order ${orderRef} was not found for merchant ${merchantRef}.`);
+      } else if (error.statusCode === 401) {
+        console.error('Invalid API Key. Please check your Chowdeck credentials.');
+      } else {
+        console.error(`API Error [${error.statusCode}]:`, error.message);
+      }
+    } else if (error instanceof ChowdeckConnectionError) {
+      console.error('Unable to reach Chowdeck API. Check internet connection or retry later.');
+    } else if (error instanceof ChowdeckError) {
+      console.error('General Chowdeck SDK error:', error.message);
+    } else {
+      console.error('Unexpected non-SDK error:', error);
+    }
+    throw error;
+  }
+}
+```
