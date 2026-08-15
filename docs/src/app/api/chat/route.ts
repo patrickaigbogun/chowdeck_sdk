@@ -75,13 +75,12 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
 
   const result = streamText({
     model: openrouter.chat(process.env.OPENROUTER_MODEL ?? 'anthropic/claude-3.5-sonnet'),
+instructions: systemPrompt,
     stopWhen: stepCountIs(5),
     tools: {
       search: searchTool,
     },
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...(await convertToModelMessages<ChatUIMessage>(reqJson.messages ?? [], {
+    messages: await convertToModelMessages<ChatUIMessage>(reqJson.messages ?? [], {
         convertDataPart(part) {
           if (part.type === 'data-client')
             return {
@@ -89,8 +88,7 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
               text: `[Client Context: ${JSON.stringify(part.data)}]`,
             };
         },
-      })),
-    ],
+      }),
     toolChoice: 'auto',
   });
 
